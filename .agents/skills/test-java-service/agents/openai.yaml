@@ -1,0 +1,4 @@
+interface:
+  display_name: "Java Service Testing"
+  short_description: "Create and review unit, contract, and integration tests"
+  default_prompt: "Use $test-java-service to create or review tests under the shared testing standards."

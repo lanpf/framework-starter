@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refactor Java Service"
+  short_description: "Plan and apply cross-layer Java service refactors"
+  default_prompt: "Use $refactor-java-service to plan a standards-driven Java service refactor."

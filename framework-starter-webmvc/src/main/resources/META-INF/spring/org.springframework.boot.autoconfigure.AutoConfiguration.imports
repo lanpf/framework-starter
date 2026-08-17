@@ -1,0 +1,3 @@
+com.cloud.framework.starter.webmvc.cors.WebMvcCorsAutoConfiguration
+com.cloud.framework.starter.webmvc.client.ClientRequestWebMvcAutoConfiguration
+com.cloud.framework.starter.webmvc.error.WebMvcErrorAutoConfiguration

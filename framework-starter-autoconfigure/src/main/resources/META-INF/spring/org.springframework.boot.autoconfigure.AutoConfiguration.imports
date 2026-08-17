@@ -1,0 +1,4 @@
+com.cloud.framework.starter.autoconfigure.conversion.Jsr310ConversionAutoConfiguration
+com.cloud.framework.starter.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizerConfiguration
+com.cloud.framework.starter.autoconfigure.jackson.JacksonModuleConfiguration
+com.cloud.framework.starter.autoconfigure.naming.NamespaceAutoConfiguration

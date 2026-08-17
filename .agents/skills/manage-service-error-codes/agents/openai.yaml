@@ -1,0 +1,4 @@
+interface:
+  display_name: "Service Error Codes"
+  short_description: "Allocate and review stable service error codes"
+  default_prompt: "Use $manage-service-error-codes to add or review service error definitions safely."

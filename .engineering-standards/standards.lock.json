@@ -1,0 +1,14 @@
+{
+  "name": "engineering-guidance-publisher",
+  "source": "https://github.com/lanpf/engineering-guidance-publisher.git",
+  "version": "1.2.3",
+  "artifact_sha256": "749d900a0e3880c105f65f16bbf686e57cd3312b0617c01282fcbc3ca6b81f8b",
+  "managed_skills": [
+    "develop-java-code",
+    "manage-java-dependencies",
+    "test-java-service",
+    "develop-layered-service",
+    "manage-service-error-codes",
+    "refactor-java-service"
+  ]
+}

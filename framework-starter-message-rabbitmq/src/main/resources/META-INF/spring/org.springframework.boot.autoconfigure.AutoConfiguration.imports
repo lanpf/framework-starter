@@ -1,0 +1,5 @@
+com.cloud.framework.starter.message.rabbitmq.RabbitMessageAutoConfiguration
+com.cloud.framework.starter.message.rabbitmq.reliability.RabbitReliabilityAutoConfiguration
+com.cloud.framework.starter.message.rabbitmq.delayed.DelayedRabbitAutoConfiguration
+com.cloud.framework.starter.message.rabbitmq.partitioned.PartitionedRabbitAutoConfiguration
+com.cloud.framework.starter.message.rabbitmq.partitioned.listener.PartitionedRabbitListenerAutoConfiguration

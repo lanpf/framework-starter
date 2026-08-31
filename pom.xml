@@ -6,7 +6,7 @@
 
     <groupId>com.cloud</groupId>
     <artifactId>framework-starter</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>framework-starter</name>
@@ -26,6 +26,7 @@
         <module>framework-starter-persistence-mybatisplus</module>
         <module>framework-starter-scheduler-xxljob</module>
         <module>framework-starter-webmvc</module>
+        <module>framework-starter-dependencies</module>
     </modules>
 
     <properties>
@@ -34,7 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <framework.version>0.2.0-SNAPSHOT</framework.version>
+        <framework.version>0.3.0-SNAPSHOT</framework.version>
     </properties>
 
     <dependencyManagement>
@@ -42,6 +43,13 @@
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-dependencies</artifactId>
+                <version>${framework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.cloud</groupId>
+                <artifactId>framework-starter-dependencies</artifactId>
                 <version>${framework.version}</version>
                 <type>pom</type>
                 <scope>import</scope>

@@ -1,7 +1,7 @@
 package com.cloud.framework.starter.lock.redis.springintegration;
 
+import com.cloud.framework.core.naming.DefaultResourceNameResolver;
 import com.cloud.framework.core.naming.NamespaceResolver;
-import com.cloud.framework.core.naming.PassthroughResourceNameResolver;
 import com.cloud.framework.core.naming.ResourceNameResolver;
 import com.cloud.framework.lock.LockProvider;
 import com.cloud.framework.starter.lock.redis.RedisLockProperties;
@@ -36,7 +36,7 @@ public class SpringIntegrationLockAutoConfiguration {
     @Bean(name = LOCK_RESOURCE_NAME_RESOLVER_BEAN_NAME)
     @ConditionalOnMissingBean(name = LOCK_RESOURCE_NAME_RESOLVER_BEAN_NAME)
     public ResourceNameResolver lockResourceNameResolver() {
-        return new PassthroughResourceNameResolver();
+        return new DefaultResourceNameResolver();
     }
 
     @Bean(name = RENEWAL_TASK_SCHEDULER_BEAN_NAME, defaultCandidate = false)
@@ -91,6 +91,6 @@ public class SpringIntegrationLockAutoConfiguration {
             RedisLockRegistry lockRegistry,
             @Qualifier(LOCK_RESOURCE_NAME_RESOLVER_BEAN_NAME) ResourceNameResolver resourceNameResolver
     ) {
-        return new SpringIntegrationLockProviderAdapter(lockRegistry, resourceNameResolver);
+        return new SpringIntegrationLockProvider(lockRegistry, resourceNameResolver);
     }
 }

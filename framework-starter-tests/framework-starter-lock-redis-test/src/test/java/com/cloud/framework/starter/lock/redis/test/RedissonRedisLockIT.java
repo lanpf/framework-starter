@@ -7,7 +7,7 @@ import static org.awaitility.Awaitility.await;
 import com.cloud.framework.lock.LockContext;
 import com.cloud.framework.lock.LockExecutor;
 import com.cloud.framework.lock.LockProvider;
-import com.cloud.framework.starter.lock.redis.redisson.RedissonLockProviderAdapter;
+import com.cloud.framework.starter.lock.redis.redisson.RedissonLockProvider;
 import com.redis.testcontainers.RedisContainer;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -71,13 +71,13 @@ class RedissonRedisLockIT {
                 AUTO_RENEWAL_LEASE_TIME,
                 true
         );
-        assertThat(ownerContext.getBean(LockProvider.class)).isInstanceOf(RedissonLockProviderAdapter.class);
+        assertThat(ownerContext.getBean(LockProvider.class)).isInstanceOf(RedissonLockProvider.class);
 
         CountDownLatch acquired = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         ExecutorService ownerExecutor = Executors.newSingleThreadExecutor();
         Future<Boolean> owner = ownerExecutor.submit(() -> ownerContext.getBean(LockExecutor.class).execute(
-                new LockContext("create-order", "1001"),
+                new LockContext("create-order:1001"),
                 () -> {
                     acquired.countDown();
                     if (!release.await(OWNER_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
@@ -101,7 +101,7 @@ class RedissonRedisLockIT {
                     ));
 
             Optional<String> blocked = contenderContext.getBean(LockExecutor.class).execute(
-                    new LockContext("create-order", "1001", LOCK_WAIT_TIME),
+                    new LockContext(LOCK_WAIT_TIME, "create-order", "1001"),
                     () -> "contender"
             );
             assertThat(blocked).isEmpty();
@@ -114,7 +114,7 @@ class RedissonRedisLockIT {
                     .untilAsserted(() -> assertThat(redisTemplate.hasKey(expectedKey)).isFalse());
 
             Optional<String> acquiredAfterRelease = contenderContext.getBean(LockExecutor.class).execute(
-                    new LockContext("create-order", "1001", LOCK_WAIT_TIME),
+                    new LockContext(LOCK_WAIT_TIME, "create-order", "1001"),
                     () -> "contender"
             );
             assertThat(acquiredAfterRelease).contains("contender");
@@ -131,13 +131,13 @@ class RedissonRedisLockIT {
         String expectedKey = applicationName + ":settle-order:2001";
         ConfigurableApplicationContext ownerContext = startContext(applicationName, FIXED_LEASE_TIME, false);
         ConfigurableApplicationContext contenderContext = startContext(applicationName, FIXED_LEASE_TIME, false);
-        assertThat(ownerContext.getBean(LockProvider.class)).isInstanceOf(RedissonLockProviderAdapter.class);
+        assertThat(ownerContext.getBean(LockProvider.class)).isInstanceOf(RedissonLockProvider.class);
 
         CountDownLatch acquired = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         ExecutorService ownerExecutor = Executors.newSingleThreadExecutor();
         Future<Boolean> owner = ownerExecutor.submit(() -> ownerContext.getBean(LockExecutor.class).execute(
-                new LockContext("settle-order", "2001"),
+                new LockContext("settle-order:2001"),
                 () -> {
                     acquired.countDown();
                     if (!release.await(OWNER_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
@@ -154,7 +154,7 @@ class RedissonRedisLockIT {
                     .untilAsserted(() -> assertThat(redisTemplate.hasKey(expectedKey)).isFalse());
 
             Optional<String> acquiredAfterExpiry = contenderContext.getBean(LockExecutor.class).execute(
-                    new LockContext("settle-order", "2001", LOCK_WAIT_TIME),
+                    new LockContext(LOCK_WAIT_TIME, "settle-order", "2001"),
                     () -> "contender"
             );
             assertThat(acquiredAfterExpiry).contains("contender");

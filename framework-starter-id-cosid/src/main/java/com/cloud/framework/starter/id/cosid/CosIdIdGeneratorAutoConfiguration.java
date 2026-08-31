@@ -1,7 +1,6 @@
 package com.cloud.framework.starter.id.cosid;
 
 import com.cloud.framework.id.LongIdGenerator;
-import com.cloud.framework.starter.id.cosid.adapter.CosIdLongIdGenerator;
 import me.ahoo.cosid.provider.IdGeneratorProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

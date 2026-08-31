@@ -3,8 +3,9 @@ package com.cloud.framework.starter.webmvc.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.cloud.framework.core.AuthenticatedRequest;
-import com.cloud.framework.core.ClientChannelRequest;
+import com.cloud.framework.core.AuthenticatedSessionChannelClientRequest;
+import com.cloud.framework.core.AuthenticatedSessionClientRequest;
+import com.cloud.framework.core.ChannelClientRequest;
 import com.cloud.framework.core.ClientRequest;
 import com.cloud.framework.core.RequestHeader;
 import java.nio.charset.StandardCharsets;
@@ -63,29 +64,49 @@ class ClientRequestBodyAdviceTest {
     }
 
     @Test
-    void shouldPopulateDirectClientChannelRequestInstance() {
-        ClientChannelRequest request = new ClientChannelRequest();
+    void shouldPopulateDirectChannelClientRequestInstance() {
+        ChannelClientRequest request = new ChannelClientRequest();
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
         inputMessage.getHeaders().add(RequestHeader.CHANNEL_CODE, "PARTNER_A");
 
         new ClientRequestBodyAdvice().afterBodyRead(
-                request, inputMessage, null, ClientChannelRequest.class, null);
+                request, inputMessage, null, ChannelClientRequest.class, null);
 
         assertEquals("PARTNER_A", request.getChannelCode());
     }
 
     @Test
     void shouldPopulateAuthenticatedRequestInstance() {
-        AuthenticatedRequest request = new AuthenticatedRequest();
+        AuthenticatedSessionClientRequest request = new AuthenticatedSessionClientRequest();
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
         inputMessage.getHeaders().add(RequestHeader.USER_ID, "1001");
+        inputMessage.getHeaders().add(RequestHeader.SESSION_ID, "session-abc");
 
         new ClientRequestBodyAdvice().afterBodyRead(
-                request, inputMessage, null, AuthenticatedRequest.class, null);
+                request, inputMessage, null, AuthenticatedSessionClientRequest.class, null);
 
-        assertEquals(1001L, request.getUserId());
+        assertEquals("1001", request.getUserId());
+        assertEquals("session-abc", request.getSessionId());
     }
 
-    private static final class SampleClientChannelRequest extends ClientChannelRequest {
+    @Test
+    void shouldPopulateComposedChannelAndAuthenticatedSessionContexts() {
+        AuthenticatedSessionChannelClientRequest request = new AuthenticatedSessionChannelClientRequest();
+        MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
+        inputMessage.getHeaders().add(RequestHeader.CLIENT_APP_ID, "mini-program");
+        inputMessage.getHeaders().add(RequestHeader.CHANNEL_CODE, "PARTNER_A");
+        inputMessage.getHeaders().add(RequestHeader.USER_ID, "1001");
+        inputMessage.getHeaders().add(RequestHeader.SESSION_ID, "session-abc");
+
+        new ClientRequestBodyAdvice().afterBodyRead(
+                request, inputMessage, null, AuthenticatedSessionChannelClientRequest.class, null);
+
+        assertEquals("mini-program", request.getClientAppId());
+        assertEquals("PARTNER_A", request.getChannelCode());
+        assertEquals("1001", request.getUserId());
+        assertEquals("session-abc", request.getSessionId());
+    }
+
+    private static final class SampleClientChannelRequest extends ChannelClientRequest {
     }
 }

@@ -1,4 +1,4 @@
-package com.cloud.framework.starter.domain.eventstore.store;
+package com.cloud.framework.starter.domain.eventstore;
 
 import com.cloud.framework.domain.DomainEvent;
 import com.cloud.framework.domain.DomainEventStore;
@@ -14,8 +14,7 @@ public class NoopDomainEventStore implements DomainEventStore {
             return;
         }
         domainEvents.forEach(domainEvent -> log.info(
-                "Noop domain event store ignored event. eventId={}, eventType={}",
-                domainEvent.getEventId(),
+                "Noop domain event store ignored event. eventType={}",
                 domainEvent.getEventType()
         ));
     }

@@ -8,13 +8,13 @@ import org.springframework.integration.support.locks.LockRegistry;
 import java.util.concurrent.locks.Lock;
 
 @RequiredArgsConstructor
-public class SpringIntegrationLockProviderAdapter implements LockProvider {
+public class SpringIntegrationLockProvider implements LockProvider {
 
     private final LockRegistry lockRegistry;
     private final ResourceNameResolver resourceNameResolver;
 
     @Override
-    public Lock obtain(String lockName) {
-        return lockRegistry.obtain(resourceNameResolver.resolve(lockName));
+    public Lock obtain(String... lockNames) {
+        return lockRegistry.obtain(resourceNameResolver.resolve(lockNames));
     }
 }

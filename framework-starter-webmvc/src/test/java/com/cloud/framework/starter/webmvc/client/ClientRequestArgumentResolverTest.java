@@ -6,8 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.cloud.framework.core.AuthenticatedRequest;
-import com.cloud.framework.core.ClientChannelRequest;
+import com.cloud.framework.core.AuthenticatedSessionChannelClientRequest;
+import com.cloud.framework.core.AuthenticatedSessionClientRequest;
+import com.cloud.framework.core.ChannelClientRequest;
 import com.cloud.framework.core.ClientRequest;
 import com.cloud.framework.core.RequestHeader;
 import jakarta.validation.Valid;
@@ -32,14 +33,14 @@ class ClientRequestArgumentResolverTest {
 
     @Test
     void shouldResolveDirectClientChannelRequestFromHeaders() throws Exception {
-        MethodParameter parameter = parameter("channelContext", ClientChannelRequest.class);
+        MethodParameter parameter = parameter("channelContext", ChannelClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "admin-console");
         servletRequest.addHeader(RequestHeader.CLIENT_PLATFORM, "WEB");
         servletRequest.addHeader(RequestHeader.CLIENT_VERSION, "1.0");
         servletRequest.addHeader(RequestHeader.CHANNEL_CODE, "PARTNER_A");
 
-        ClientChannelRequest request = (ClientChannelRequest) resolver.resolveArgument(
+        ChannelClientRequest request = (ChannelClientRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
 
         assertEquals("admin-console", request.getClientAppId());
@@ -51,24 +52,45 @@ class ClientRequestArgumentResolverTest {
     @Test
     void shouldOnlySupportDirectNonBodyContextTypes() throws Exception {
         assertTrue(resolver.supportsParameter(parameter("clientContext", ClientRequest.class)));
-        assertTrue(resolver.supportsParameter(parameter("channelContext", ClientChannelRequest.class)));
-        assertTrue(resolver.supportsParameter(parameter("authenticatedContext", AuthenticatedRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("channelContext", ChannelClientRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("authenticatedContext", AuthenticatedSessionClientRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("authenticatedChannelContext", AuthenticatedSessionChannelClientRequest.class)));
         assertFalse(resolver.supportsParameter(parameter("requestBody", ClientRequest.class)));
         assertFalse(resolver.supportsParameter(parameter("specialized", SpecializedRequest.class)));
     }
 
     @Test
     void shouldResolveAuthenticatedRequestFromHeaders() throws Exception {
-        MethodParameter parameter = parameter("authenticatedContext", AuthenticatedRequest.class);
+        MethodParameter parameter = parameter("authenticatedContext", AuthenticatedSessionClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "admin-console");
         servletRequest.addHeader(RequestHeader.USER_ID, "1001");
+        servletRequest.addHeader(RequestHeader.SESSION_ID, "session-abc");
 
-        AuthenticatedRequest request = (AuthenticatedRequest) resolver.resolveArgument(
+        AuthenticatedSessionClientRequest request = (AuthenticatedSessionClientRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
 
         assertEquals("admin-console", request.getClientAppId());
-        assertEquals(1001L, request.getUserId());
+        assertEquals("1001", request.getUserId());
+        assertEquals("session-abc", request.getSessionId());
+    }
+
+    @Test
+    void shouldComposeChannelAndAuthenticatedSessionContexts() throws Exception {
+        MethodParameter parameter = parameter("authenticatedChannelContext", AuthenticatedSessionChannelClientRequest.class);
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "mini-program");
+        servletRequest.addHeader(RequestHeader.CHANNEL_CODE, "PARTNER_A");
+        servletRequest.addHeader(RequestHeader.USER_ID, "1001");
+        servletRequest.addHeader(RequestHeader.SESSION_ID, "session-abc");
+
+        AuthenticatedSessionChannelClientRequest request = (AuthenticatedSessionChannelClientRequest) resolver.resolveArgument(
+                parameter, null, new ServletWebRequest(servletRequest), binderFactory);
+
+        assertEquals("mini-program", request.getClientAppId());
+        assertEquals("PARTNER_A", request.getChannelCode());
+        assertEquals("1001", request.getUserId());
+        assertEquals("session-abc", request.getSessionId());
     }
 
     @Test
@@ -87,8 +109,8 @@ class ClientRequestArgumentResolverTest {
     }
 
     @Test
-    void shouldRejectClientChannelRequestWithoutChannelCode() throws Exception {
-        MethodParameter parameter = parameter("channelContext", ClientChannelRequest.class);
+    void shouldRejectChannelClientRequestWithoutChannelCode() throws Exception {
+        MethodParameter parameter = parameter("channelContext", ChannelClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "admin-console");
 
@@ -159,10 +181,13 @@ class ClientRequestArgumentResolverTest {
         void clientContext(@Valid ClientRequest request) {
         }
 
-        void channelContext(@Valid ClientChannelRequest request) {
+        void channelContext(@Valid ChannelClientRequest request) {
         }
 
-        void authenticatedContext(@Valid AuthenticatedRequest request) {
+        void authenticatedContext(@Valid AuthenticatedSessionClientRequest request) {
+        }
+
+        void authenticatedChannelContext(@Valid AuthenticatedSessionChannelClientRequest request) {
         }
 
         void unvalidatedClientContext(ClientRequest request) {

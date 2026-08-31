@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-class RedissonLockProviderAdapterTest {
+class RedissonLockProviderTest {
 
     @Test
     void shouldObtainLockUsingTheCanonicalPhysicalKey() {
@@ -27,13 +27,13 @@ class RedissonLockProviderAdapterTest {
                         properties,
                         namespaced -> "order-service"
                 );
-        LockProvider provider = new RedissonLockProviderAdapter(
+        LockProvider provider = new RedissonLockProvider(
                 redissonClient,
                 resourceNameResolver,
                 properties
         );
 
-        Lock lock = provider.obtain("create-order:1001");
+        Lock lock = provider.obtain("create-order", "1001");
 
         assertInstanceOf(RedissonLock.class, lock);
         assertEquals("order-service:create-order:1001", obtainedLockName.get());

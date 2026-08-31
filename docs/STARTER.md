@@ -58,7 +58,8 @@
 
 ### `framework-starter-domain-eventstore`
 
-- 提供领域事件存储的通用 DO、持久化 repository 契约和默认编排。
+- 提供技术中立的 `DomainEventEnvelope`、持久化 repository 契约和默认编排；具体持久化技术在各自实现 module 中定义 DO 和转换 Mapper。
+- 原始 `DomainEvent` 不携带事件记录 ID；`DefaultDomainEventStore` 在构造 `DomainEventEnvelope` 时通过 `LongIdGenerator` 的 `domain_event` ID 空间分配趋势递增的 Long ID。
 - 领域事件发生时间使用 `Instant` 持久化。
 - 默认使用 `DefaultDomainEventStore` 持久化，可通过配置切换为只记录日志的 `NoopDomainEventStore`。
 - 具体数据库 repository 实现由服务或独立技术适配 module 提供。
@@ -101,6 +102,8 @@
 
 - 提供 Spring MVC 的 CORS 和统一异常处理自动配置。
 - Web 层异常响应复用 `framework-core` 的响应与错误契约，不定义服务业务异常。
+- `ClientRequestBodyAdvice` 负责有请求体场景，`ClientRequestArgumentResolver` 负责无请求体的框架具体上下文参数；两者都通过同一个 binder 覆盖受保护 Header。
+- binder 始终写入 Client 上下文，并按 `ChannelRequestContext`、`AuthenticatedSessionRequestContext` 能力分别写入渠道和认证会话，因此一个请求可以组合两种上下文。Starter 只完成绑定；参数上的 `@Valid`/`@Validated` 负责校验必填契约。
 
 ## 集成测试工程
 

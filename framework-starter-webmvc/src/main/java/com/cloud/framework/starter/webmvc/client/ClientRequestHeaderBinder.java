@@ -1,7 +1,7 @@
 package com.cloud.framework.starter.webmvc.client;
 
-import com.cloud.framework.core.AuthenticatedRequest;
-import com.cloud.framework.core.ClientChannelRequest;
+import com.cloud.framework.core.AuthenticatedSessionContext;
+import com.cloud.framework.core.ChannelContext;
 import com.cloud.framework.core.ClientRequest;
 import com.cloud.framework.core.RequestHeader;
 import java.util.function.Function;
@@ -16,12 +16,12 @@ final class ClientRequestHeaderBinder {
         request.setClientAppId(headerValueProvider.apply(RequestHeader.CLIENT_APP_ID));
         request.setClientPlatform(headerValueProvider.apply(RequestHeader.CLIENT_PLATFORM));
         request.setClientVersion(headerValueProvider.apply(RequestHeader.CLIENT_VERSION));
-        if (request instanceof ClientChannelRequest channelRequest) {
-            channelRequest.setChannelCode(headerValueProvider.apply(RequestHeader.CHANNEL_CODE));
+        if (request instanceof ChannelContext channelContext) {
+            channelContext.setChannelCode(headerValueProvider.apply(RequestHeader.CHANNEL_CODE));
         }
-        if (request instanceof AuthenticatedRequest authenticatedRequest) {
-            String userId = headerValueProvider.apply(RequestHeader.USER_ID);
-            authenticatedRequest.setUserId(userId == null ? null : Long.valueOf(userId));
+        if (request instanceof AuthenticatedSessionContext sessionContext) {
+            sessionContext.setUserId(headerValueProvider.apply(RequestHeader.USER_ID));
+            sessionContext.setSessionId(headerValueProvider.apply(RequestHeader.SESSION_ID));
         }
     }
 }

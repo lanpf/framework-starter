@@ -1,7 +1,8 @@
 package com.cloud.framework.starter.webmvc.client;
 
-import com.cloud.framework.core.AuthenticatedRequest;
-import com.cloud.framework.core.ClientChannelRequest;
+import com.cloud.framework.core.AuthenticatedSessionChannelClientRequest;
+import com.cloud.framework.core.AuthenticatedSessionClientRequest;
+import com.cloud.framework.core.ChannelClientRequest;
 import com.cloud.framework.core.ClientRequest;
 import java.lang.annotation.Annotation;
 import org.springframework.core.Conventions;
@@ -26,8 +27,9 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
         }
         Class<?> parameterType = parameter.getParameterType();
         return parameterType == ClientRequest.class
-                || parameterType == ClientChannelRequest.class
-                || parameterType == AuthenticatedRequest.class;
+                || parameterType == ChannelClientRequest.class
+                || parameterType == AuthenticatedSessionClientRequest.class
+                || parameterType == AuthenticatedSessionChannelClientRequest.class;
     }
 
     @Override
@@ -75,11 +77,14 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
     }
 
     private ClientRequest createRequest(Class<?> parameterType) {
-        if (parameterType == ClientChannelRequest.class) {
-            return new ClientChannelRequest();
+        if (parameterType == ChannelClientRequest.class) {
+            return new ChannelClientRequest();
         }
-        if (parameterType == AuthenticatedRequest.class) {
-            return new AuthenticatedRequest();
+        if (parameterType == AuthenticatedSessionClientRequest.class) {
+            return new AuthenticatedSessionClientRequest();
+        }
+        if (parameterType == AuthenticatedSessionChannelClientRequest.class) {
+            return new AuthenticatedSessionChannelClientRequest();
         }
         return new ClientRequest();
     }

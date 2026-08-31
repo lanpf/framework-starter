@@ -1,4 +1,4 @@
-package com.cloud.framework.starter.id.cosid.adapter;
+package com.cloud.framework.starter.id.cosid;
 
 import com.cloud.framework.id.LongIdGenerator;
 import lombok.RequiredArgsConstructor;

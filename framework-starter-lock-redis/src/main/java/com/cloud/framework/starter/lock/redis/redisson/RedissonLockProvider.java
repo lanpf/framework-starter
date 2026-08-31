@@ -9,16 +9,16 @@ import org.redisson.api.RedissonClient;
 import java.util.concurrent.locks.Lock;
 
 @RequiredArgsConstructor
-public class RedissonLockProviderAdapter implements LockProvider {
+public class RedissonLockProvider implements LockProvider {
 
     private final RedissonClient redissonClient;
     private final ResourceNameResolver resourceNameResolver;
     private final RedisLockProperties properties;
 
     @Override
-    public Lock obtain(String lockName) {
+    public Lock obtain(String... lockNames) {
         return new RedissonLock(
-                redissonClient.getLock(resourceNameResolver.resolve(lockName)),
+                redissonClient.getLock(resourceNameResolver.resolve(lockNames)),
                 properties.getLeaseTime(),
                 properties.isAutoRenewal()
         );

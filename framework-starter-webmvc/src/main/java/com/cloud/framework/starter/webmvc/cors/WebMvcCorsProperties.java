@@ -20,13 +20,13 @@ import java.util.List;
 public class WebMvcCorsProperties {
     private boolean enabled = true;
 
-    private List<String> allowedOriginPatterns = new ArrayList<>(List.of("*"));
+    private final List<String> allowedOriginPatterns = new ArrayList<>(List.of("*"));
 
-    private List<String> allowedMethods = new ArrayList<>(List.of("*"));
+    private final List<String> allowedMethods = new ArrayList<>(List.of("*"));
 
-    private List<String> allowedHeaders = new ArrayList<>(List.of("*"));
+    private final List<String> allowedHeaders = new ArrayList<>(List.of("*"));
 
-    private List<String> exposedHeaders = new ArrayList<>(List.of("*"));
+    private final List<String> exposedHeaders = new ArrayList<>(List.of("*"));
 
     private boolean allowCredentials = true;
 

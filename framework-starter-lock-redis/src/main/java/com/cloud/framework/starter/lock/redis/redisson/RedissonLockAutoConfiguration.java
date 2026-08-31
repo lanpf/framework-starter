@@ -45,7 +45,7 @@ public class RedissonLockAutoConfiguration {
             RedisLockProperties properties
     ) {
         validateWatchdogTimeout(redissonClient, properties);
-        return new RedissonLockProviderAdapter(redissonClient, resourceNameResolver, properties);
+        return new RedissonLockProvider(redissonClient, resourceNameResolver, properties);
     }
 
     private void validateWatchdogTimeout(RedissonClient redissonClient, RedisLockProperties properties) {

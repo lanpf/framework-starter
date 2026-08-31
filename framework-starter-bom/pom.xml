@@ -6,14 +6,14 @@
 
     <groupId>com.cloud</groupId>
     <artifactId>framework-starter-bom</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>framework-starter-bom</name>
     <description>Dependency management for framework starter modules</description>
 
     <properties>
-        <framework-starter.version>0.2.0-SNAPSHOT</framework-starter.version>
+        <revision.version>${project.version}</revision.version>
     </properties>
 
     <dependencyManagement>
@@ -21,57 +21,57 @@
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-autoconfigure</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-id-cosid</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-lock-redis</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-domain-eventstore</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-message</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-message-rabbitmq</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-outbox</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-persistence-jpa</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-persistence-mybatisplus</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-scheduler-xxljob</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.cloud</groupId>
                 <artifactId>framework-starter-webmvc</artifactId>
-                <version>${framework-starter.version}</version>
+                <version>${revision.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

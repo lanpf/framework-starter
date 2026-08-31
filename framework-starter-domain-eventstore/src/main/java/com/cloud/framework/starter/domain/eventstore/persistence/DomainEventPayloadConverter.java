@@ -1,4 +1,4 @@
-package com.cloud.framework.starter.domain.eventstore.persistence.mapstruct;
+package com.cloud.framework.starter.domain.eventstore.persistence;
 
 import com.cloud.framework.domain.DomainEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;

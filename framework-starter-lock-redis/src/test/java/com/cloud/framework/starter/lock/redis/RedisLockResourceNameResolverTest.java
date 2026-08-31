@@ -1,6 +1,7 @@
 package com.cloud.framework.starter.lock.redis;
 
 import com.cloud.framework.core.naming.NamespaceResolver;
+import com.cloud.framework.core.naming.Namespaced;
 import com.cloud.framework.core.naming.ResourceNameResolver;
 import com.cloud.framework.starter.lock.redis.redisson.RedissonLockAutoConfiguration;
 import com.cloud.framework.starter.lock.redis.springintegration.SpringIntegrationLockAutoConfiguration;
@@ -14,7 +15,7 @@ class RedisLockResourceNameResolverTest {
     void shouldPassThroughLockNameForSpringIntegration() {
         ResourceNameResolver resolver = new SpringIntegrationLockAutoConfiguration().lockResourceNameResolver();
 
-        assertEquals("create-order:1001", resolver.resolve("create-order:1001"));
+        assertEquals("create-order:1001", resolver.resolve("create-order", "1001"));
     }
 
     @Test
@@ -23,10 +24,10 @@ class RedisLockResourceNameResolverTest {
         properties.setNamespace("order-service");
         ResourceNameResolver resolver = new RedissonLockAutoConfiguration().lockResourceNameResolver(
                 properties,
-                namespaced -> namespaced.getNamespace()
+                Namespaced::getNamespace
         );
 
-        assertEquals("order-service:create-order:1001", resolver.resolve("create-order:1001"));
+        assertEquals("order-service:create-order:1001", resolver.resolve("create-order", "1001"));
     }
 
     @Test
@@ -36,7 +37,7 @@ class RedisLockResourceNameResolverTest {
                 namespaced -> "order-service"
         );
 
-        assertEquals("order-service:create-order:1001", resolver.resolve("create-order:1001"));
+        assertEquals("order-service:create-order:1001", resolver.resolve("create-order", "1001"));
     }
 
     @Test
@@ -47,6 +48,6 @@ class RedisLockResourceNameResolverTest {
                 namespaceResolver
         );
 
-        assertEquals("shared-service:create-order:1001", resolver.resolve("create-order:1001"));
+        assertEquals("shared-service:create-order:1001", resolver.resolve("create-order", "1001"));
     }
 }

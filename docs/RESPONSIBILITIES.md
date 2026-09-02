@@ -4,7 +4,17 @@
 
 ## 工程职责
 
-`framework-starter` 将 `framework-*` 契约适配到 Spring Boot 和具体技术栈，提供条件化、可替换、最小侵入的自动配置。starter 不定义服务领域模型，也不替服务的 boot module 决定运行时技术组合。
+`framework-starter` 将 `framework-*` 契约适配到 Spring Boot 和具体技术栈，提供条件化、可替换、最小侵入的自动配置。
+
+## 不负责
+
+- 服务领域模型与业务规则：由各业务服务工程负责。
+- 运行时技术组合选择：由服务工程的 boot module 装配负责，starter 只提供条件化能力。
+- 具体持久化技术的 DO、DO 转换 mapper 与 repository 实现：由服务或独立技术适配 module 提供。
+
+## 协作契约
+
+- 本工程消费 `framework-*` 契约完成适配：契约语义、稳定性与变更节奏以 framework 工程为准，需要新契约或契约变更时在两侧同步更新；对应内容见 framework 工程 `docs/RESPONSIBILITIES.md`，此处不复制。
 
 ## 模块与依赖
 
@@ -56,7 +66,7 @@
 ### `framework-starter-lock-redis`
 
 - Redis 分布式锁装配，`framework.lock.redis.provider` 选择 `spring-integration`（默认）或 `redisson`。
-- `LockContext` 只声明 `scene` 和 `key`；两种 provider 统一生成 `namespace:scene:key`，namespace 优先 `framework.lock.redis.namespace`，回退 `spring.application.name`、`application`。
+- `LockContext` 声明 `waitTime` 与 `lockNames` 键段；两种 provider 统一经 `ResourceNameResolver` 完成键段规范化与 namespace 注入，namespace 优先 `framework.lock.redis.namespace`，回退 `spring.application.name`、`application`。
 - `lease-time` 统一表示首次或固定 TTL；开启 `auto-renewal` 时 Redisson 使用 watchdog、Spring Integration 使用 renewal scheduler（`renewal.pool`、线程名前缀、remove-on-cancel 独立配置）；关闭时两者均使用固定 TTL 到期释放。
 - Redisson 通过 `RedissonAutoConfigurationCustomizer` 将 `lockWatchdogTimeout` 对齐 `lease-time` 并在装配时校验；两种 provider 锁数据结构不同，运行期不得混用。
 

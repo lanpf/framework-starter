@@ -40,6 +40,21 @@ public class IntegrationEventOutboxJpaPersistenceRepository implements Integrati
     }
 
     @Override
+    public List<String> findBatchIdsByStatusAndUpdatedBeforeAndRetryCountLessThan(
+            OutboxStatus status,
+            Instant updatedBefore,
+            Integer retryCount,
+            Integer limit
+    ) {
+        return this.repository.findBatchIdsByStatusAndUpdatedBeforeAndRetryCountLessThan(
+                status,
+                updatedBefore,
+                retryCount,
+                PageRequest.of(0, limit)
+        );
+    }
+
+    @Override
     @Transactional
     public Integer markPublishingByBatchId(String batchId, Instant publishingAt) {
         return this.repository.markPublishingByBatchId(
@@ -58,6 +73,30 @@ public class IntegrationEventOutboxJpaPersistenceRepository implements Integrati
                 publishedAt,
                 OutboxStatus.PUBLISHING,
                 OutboxStatus.PUBLISHED
+        );
+    }
+
+    @Override
+    @Transactional
+    public Integer restorePendingByBatchId(String batchId, Instant publishingAt, Instant pendingAt) {
+        return this.repository.restorePendingByBatchId(
+                batchId,
+                publishingAt,
+                pendingAt,
+                OutboxStatus.PUBLISHING,
+                OutboxStatus.PENDING
+        );
+    }
+
+    @Override
+    @Transactional
+    public Integer restoreExpiredPublishingByBatchId(String batchId, Instant publishingBefore, Instant pendingAt) {
+        return this.repository.restoreExpiredPublishingByBatchId(
+                batchId,
+                publishingBefore,
+                pendingAt,
+                OutboxStatus.PUBLISHING,
+                OutboxStatus.PENDING
         );
     }
 

@@ -1,10 +1,12 @@
 package com.cloud.framework.starter.outbox.reliable;
 
+import com.cloud.framework.starter.outbox.IntegrationEventOutboxProperties;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +22,13 @@ public class IntegrationEventOutboxFallbackPublisher {
     private final IntegrationEventOutboxEnvelopePersistenceRepository repository;
     private final IntegrationEventOutboxPublisher outboxPublisher;
     private final Clock clock;
+    private final IntegrationEventOutboxProperties properties;
 
     public void publish(
             @NotNull @Positive Integer batchSize,
             @NotNull @Positive Integer maxRetryCount
     ) {
+        recoverExpiredPublishingBatches(batchSize, maxRetryCount);
         List<String> batchIds =
                 repository.findBatchIdsByStatusAndRetryCountLessThan(
                         OutboxStatus.PENDING,
@@ -49,6 +53,27 @@ public class IntegrationEventOutboxFallbackPublisher {
                 failedCount,
                 skippedCount
         );
+    }
+
+    private void recoverExpiredPublishingBatches(Integer batchSize, Integer maxRetryCount) {
+        Instant pendingAt = clock.instant();
+        Instant publishingBefore = pendingAt.minus(Duration.ofMillis(properties.getRecovery().getPublishingTimeout()));
+        List<String> batchIds = repository.findBatchIdsByStatusAndUpdatedBeforeAndRetryCountLessThan(
+                OutboxStatus.PUBLISHING,
+                publishingBefore,
+                maxRetryCount,
+                batchSize
+        );
+        int recoveredCount = 0;
+        for (String batchId : batchIds) {
+            Integer restoredCount = repository.restoreExpiredPublishingByBatchId(batchId, publishingBefore, pendingAt);
+            if (restoredCount != null && restoredCount > 0) {
+                recoveredCount++;
+            }
+        }
+        if (recoveredCount > 0) {
+            log.info("Integration event outbox publishing lease recovered. recovered={}", recoveredCount);
+        }
     }
 
     private PublishAttempt publishOne(String batchId, Integer maxRetryCount) {

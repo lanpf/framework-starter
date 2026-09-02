@@ -1,19 +1,19 @@
 package com.cloud.framework.starter.outbox;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Validated
@@ -24,6 +24,9 @@ public class IntegrationEventOutboxProperties {
 
     @Valid
     private final Retry retry = new Retry();
+
+    @Valid
+    private final Recovery recovery = new Recovery();
 
     @Getter
     @Setter
@@ -54,26 +57,25 @@ public class IntegrationEventOutboxProperties {
     @Setter
     public static class Backoff {
         @NotNull
-        private Duration delay = Duration.ofSeconds(1);
+        @Positive
+        private Long delay = 1000L;
 
         @NotNull
-        private Duration maxDelay = Duration.ZERO;
+        @PositiveOrZero
+        private Long maxDelay = 0L;
 
         @NotNull
         @DecimalMin("0.0")
         private Double multiplier = 0.0;
 
         private boolean random;
+    }
 
-        @AssertTrue(message = "outbox retry backoff delay must be at least one millisecond")
-        public boolean isDelayValid() {
-            return this.delay != null && this.delay.toMillis() > 0;
-        }
-
-        @AssertTrue(message = "outbox retry backoff max-delay must be zero or at least one millisecond")
-        public boolean isMaxDelayValid() {
-            return this.maxDelay != null
-                    && (this.maxDelay.isZero() || this.maxDelay.toMillis() > 0);
-        }
+    @Getter
+    @Setter
+    public static class Recovery {
+        @NotNull
+        @Positive
+        private Long publishingTimeout = 5 * 60 * 1000L;
     }
 }

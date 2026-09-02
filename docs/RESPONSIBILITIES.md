@@ -1,4 +1,4 @@
-# framework-starter 模块职责
+# framework-starter
 
 本文是 `framework-starter` 工程的项目文档入口，按 module 描述当前能力、装配方式与依赖边界；服务工程按需引用 starter。修改任何 `framework-starter-*` module 前先阅读本文。
 

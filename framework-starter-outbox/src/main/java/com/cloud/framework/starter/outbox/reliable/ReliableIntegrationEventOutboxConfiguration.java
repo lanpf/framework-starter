@@ -83,8 +83,8 @@ public class ReliableIntegrationEventOutboxConfiguration {
 
     private BackOffPolicy createBackOffPolicy(IntegrationEventOutboxProperties.Backoff backoff) {
         return BackOffPolicyBuilder.newBuilder()
-                .delay(backoff.getDelay().toMillis())
-                .maxDelay(backoff.getMaxDelay().toMillis())
+                .delay(backoff.getDelay())
+                .maxDelay(backoff.getMaxDelay())
                 .multiplier(backoff.getMultiplier())
                 .random(backoff.isRandom())
                 .build();
@@ -132,9 +132,15 @@ public class ReliableIntegrationEventOutboxConfiguration {
     public IntegrationEventOutboxFallbackPublisher integrationEventOutboxFallbackPublisher(
             IntegrationEventOutboxEnvelopePersistenceRepository repository,
             IntegrationEventOutboxPublisher outboxPublisher,
+            IntegrationEventOutboxProperties properties,
             ObjectProvider<Clock> clockProvider
     ) {
-        return new IntegrationEventOutboxFallbackPublisher(repository, outboxPublisher, resolveClock(clockProvider));
+        return new IntegrationEventOutboxFallbackPublisher(
+                repository,
+                outboxPublisher,
+                resolveClock(clockProvider),
+                properties
+        );
     }
 
     private Clock resolveClock(ObjectProvider<Clock> clockProvider) {

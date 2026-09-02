@@ -26,6 +26,22 @@ public interface IntegrationEventOutboxJpaRepository extends JpaRepository<Integ
             Pageable pageable
     );
 
+    @Query("""
+            select outbox.batchId
+              from IntegrationEventOutboxDO outbox
+             where outbox.status = :status
+               and outbox.updatedAt < :updatedBefore
+               and outbox.retryCount < :retryCount
+             group by outbox.batchId
+             order by min(outbox.createdAt)
+            """)
+    List<String> findBatchIdsByStatusAndUpdatedBeforeAndRetryCountLessThan(
+            @Param("status") OutboxStatus status,
+            @Param("updatedBefore") Instant updatedBefore,
+            @Param("retryCount") Integer retryCount,
+            Pageable pageable
+    );
+
     @Modifying
     @Query("""
             update IntegrationEventOutboxDO outbox
@@ -55,5 +71,39 @@ public interface IntegrationEventOutboxJpaRepository extends JpaRepository<Integ
             @Param("publishedAt") Instant publishedAt,
             @Param("publishingStatus") OutboxStatus publishingStatus,
             @Param("publishedStatus") OutboxStatus publishedStatus
+    );
+
+    @Modifying
+    @Query("""
+            update IntegrationEventOutboxDO outbox
+               set outbox.status = :pendingStatus,
+                   outbox.updatedAt = :pendingAt
+             where outbox.batchId = :batchId
+               and outbox.status = :publishingStatus
+               and outbox.updatedAt = :publishingAt
+            """)
+    Integer restorePendingByBatchId(
+            @Param("batchId") String batchId,
+            @Param("publishingAt") Instant publishingAt,
+            @Param("pendingAt") Instant pendingAt,
+            @Param("publishingStatus") OutboxStatus publishingStatus,
+            @Param("pendingStatus") OutboxStatus pendingStatus
+    );
+
+    @Modifying
+    @Query("""
+            update IntegrationEventOutboxDO outbox
+               set outbox.status = :pendingStatus,
+                   outbox.updatedAt = :pendingAt
+             where outbox.batchId = :batchId
+               and outbox.status = :publishingStatus
+               and outbox.updatedAt < :publishingBefore
+            """)
+    Integer restoreExpiredPublishingByBatchId(
+            @Param("batchId") String batchId,
+            @Param("publishingBefore") Instant publishingBefore,
+            @Param("pendingAt") Instant pendingAt,
+            @Param("publishingStatus") OutboxStatus publishingStatus,
+            @Param("pendingStatus") OutboxStatus pendingStatus
     );
 }

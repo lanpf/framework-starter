@@ -14,9 +14,20 @@ public interface IntegrationEventOutboxEnvelopePersistenceRepository {
             Integer limit
     );
 
+    List<String> findBatchIdsByStatusAndUpdatedBeforeAndRetryCountLessThan(
+            OutboxStatus status,
+            Instant updatedBefore,
+            Integer retryCount,
+            Integer limit
+    );
+
     Integer markPublishingByBatchId(String batchId, Instant publishingAt);
 
     Integer markPublishedByBatchId(String batchId, Instant publishedAt);
+
+    Integer restorePendingByBatchId(String batchId, Instant publishingAt, Instant pendingAt);
+
+    Integer restoreExpiredPublishingByBatchId(String batchId, Instant publishingBefore, Instant pendingAt);
 
     void markPublishFailedByBatchId(
             String batchId,

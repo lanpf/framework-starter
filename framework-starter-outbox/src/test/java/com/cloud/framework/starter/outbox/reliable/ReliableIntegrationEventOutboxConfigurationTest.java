@@ -26,15 +26,15 @@ class ReliableIntegrationEventOutboxConfigurationTest {
             new ReliableIntegrationEventOutboxConfiguration();
 
     @Test
-    void bindsRetryableStyleProperties() {
+    void shouldBindRetryableStyleProperties() {
         new ApplicationContextRunner()
                 .withUserConfiguration(RetryPropertiesConfiguration.class)
                 .withPropertyValues(
                         "framework.outbox.integration-event.retry.max-attempts=5",
                         "framework.outbox.integration-event.retry.retry-for[0]=java.lang.IllegalStateException",
                         "framework.outbox.integration-event.retry.no-retry-for[0]=java.lang.IllegalArgumentException",
-                        "framework.outbox.integration-event.retry.backoff.delay=10ms",
-                        "framework.outbox.integration-event.retry.backoff.max-delay=1s",
+                        "framework.outbox.integration-event.retry.backoff.delay=10",
+                        "framework.outbox.integration-event.retry.backoff.max-delay=1000",
                         "framework.outbox.integration-event.retry.backoff.multiplier=2",
                         "framework.outbox.integration-event.retry.backoff.random=true"
                 )
@@ -44,15 +44,15 @@ class ReliableIntegrationEventOutboxConfigurationTest {
                     assertThat(retry.getMaxAttempts()).isEqualTo(5);
                     assertThat(retry.getRetryFor()).containsExactly(IllegalStateException.class);
                     assertThat(retry.getNoRetryFor()).containsExactly(IllegalArgumentException.class);
-                    assertThat(retry.getBackoff().getDelay()).isEqualTo(Duration.ofMillis(10));
-                    assertThat(retry.getBackoff().getMaxDelay()).isEqualTo(Duration.ofSeconds(1));
+                    assertThat(retry.getBackoff().getDelay()).isEqualTo(10L);
+                    assertThat(retry.getBackoff().getMaxDelay()).isEqualTo(1000L);
                     assertThat(retry.getBackoff().getMultiplier()).isEqualTo(2.0);
                     assertThat(retry.getBackoff().isRandom()).isTrue();
                 });
     }
 
     @Test
-    void bindsSpringBootTaskExecutionPoolProperties() {
+    void shouldBindSpringBootTaskExecutionPoolProperties() {
         new ApplicationContextRunner()
                 .withUserConfiguration(RetryPropertiesConfiguration.class)
                 .withPropertyValues(
@@ -78,7 +78,16 @@ class ReliableIntegrationEventOutboxConfigurationTest {
     }
 
     @Test
-    void buildsTaskExecutorWithSpringBootBuilder() {
+    void shouldBindPublishingTimeout() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(RetryPropertiesConfiguration.class)
+                .withPropertyValues("framework.outbox.integration-event.recovery.publishing-timeout=600000")
+                .run(context -> assertThat(context.getBean(IntegrationEventOutboxProperties.class)
+                        .getRecovery().getPublishingTimeout()).isEqualTo(600000L));
+    }
+
+    @Test
+    void shouldBuildTaskExecutorWithSpringBootBuilder() {
         IntegrationEventOutboxProperties properties = new IntegrationEventOutboxProperties();
         properties.getAsync().setThreadNamePrefix("outbox-worker-");
         properties.getAsync().getPool().setCoreSize(2);
@@ -101,7 +110,7 @@ class ReliableIntegrationEventOutboxConfigurationTest {
     }
 
     @Test
-    void appliesRetryForAndNoRetryFor() {
+    void shouldApplyRetryForAndNoRetryFor() {
         IntegrationEventOutboxProperties properties = propertiesWithShortBackoff();
         properties.getRetry().getRetryFor().add(IllegalStateException.class);
         properties.getRetry().getNoRetryFor().add(IllegalArgumentException.class);
@@ -123,16 +132,16 @@ class ReliableIntegrationEventOutboxConfigurationTest {
     }
 
     @Test
-    void selectsBackoffPolicyFromBackoffProperties() {
+    void shouldSelectBackoffPolicyFromBackoffProperties() {
         IntegrationEventOutboxProperties fixedProperties = propertiesWithShortBackoff();
         assertThat(backOffPolicy(fixedProperties)).isInstanceOf(FixedBackOffPolicy.class);
 
         IntegrationEventOutboxProperties uniformProperties = propertiesWithShortBackoff();
-        uniformProperties.getRetry().getBackoff().setMaxDelay(Duration.ofMillis(10));
+        uniformProperties.getRetry().getBackoff().setMaxDelay(Duration.ofMillis(10).toMillis());
         assertThat(backOffPolicy(uniformProperties)).isInstanceOf(UniformRandomBackOffPolicy.class);
 
         IntegrationEventOutboxProperties exponentialProperties = propertiesWithShortBackoff();
-        exponentialProperties.getRetry().getBackoff().setMaxDelay(Duration.ofMillis(10));
+        exponentialProperties.getRetry().getBackoff().setMaxDelay(Duration.ofMillis(10).toMillis());
         exponentialProperties.getRetry().getBackoff().setMultiplier(2.0);
         exponentialProperties.getRetry().getBackoff().setRandom(true);
         assertThat(backOffPolicy(exponentialProperties)).isInstanceOf(ExponentialRandomBackOffPolicy.class);
@@ -146,7 +155,7 @@ class ReliableIntegrationEventOutboxConfigurationTest {
 
     private IntegrationEventOutboxProperties propertiesWithShortBackoff() {
         IntegrationEventOutboxProperties properties = new IntegrationEventOutboxProperties();
-        properties.getRetry().getBackoff().setDelay(Duration.ofMillis(1));
+        properties.getRetry().getBackoff().setDelay(Duration.ofMillis(1).toMillis());
         return properties;
     }
 

@@ -135,7 +135,7 @@ class ReliableEventOutboxJpaRabbitMqIT {
         properties.put("spring.rabbitmq.password", RABBITMQ.getAdminPassword());
         properties.put("framework.outbox.integration-event.mode", "reliable");
         properties.put("framework.outbox.integration-event.retry.max-attempts", 1);
-        properties.put("framework.outbox.integration-event.retry.backoff.delay", "1ms");
+        properties.put("framework.outbox.integration-event.retry.backoff.delay", "1");
         properties.put("framework.rabbitmq.producer.reliability-mode", "publisher-confirm");
         properties.put("framework.rabbitmq.partitioned.routing-mode", "selector");
         properties.put("framework.rabbitmq.partitioned.selector.algorithm", "hash");

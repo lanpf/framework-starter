@@ -1,6 +1,6 @@
 package com.cloud.framework.starter.persistence.jpa;
 
-import com.cloud.framework.persistence.naming.PersistenceProperties;
+import com.cloud.framework.persistence.PersistenceProperties;
 import com.cloud.framework.starter.persistence.jpa.naming.PersistencePhysicalNamingStrategy;
 import org.hibernate.cfg.AvailableSettings;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

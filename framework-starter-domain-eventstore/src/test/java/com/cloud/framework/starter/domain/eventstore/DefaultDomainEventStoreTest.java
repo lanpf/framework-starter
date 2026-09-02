@@ -3,10 +3,9 @@ package com.cloud.framework.starter.domain.eventstore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.cloud.framework.domain.AbstractDomainEvent;
-import com.cloud.framework.domain.DomainEvent;
 import com.cloud.framework.id.LongIdGenerator;
 import com.cloud.framework.starter.domain.eventstore.persistence.DomainEventEnvelope;
-import com.cloud.framework.starter.domain.eventstore.persistence.DomainEventEnvelopeMapper;
+import com.cloud.framework.starter.domain.eventstore.persistence.DomainEventEnvelopePersistenceMapper;
 import com.cloud.framework.starter.domain.eventstore.persistence.DomainEventEnvelopePersistenceRepository;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ class DefaultDomainEventStoreTest {
     void shouldAssignPersistenceEnvelopeIdsWhenAppendingDomainEvents() {
         List<DomainEventEnvelope> storedEvents = new ArrayList<>();
         DomainEventEnvelopePersistenceRepository repository = storedEvents::addAll;
-        DomainEventEnvelopeMapper mapper = (eventId, domainEvent) -> new DomainEventEnvelope(
+        DomainEventEnvelopePersistenceMapper mapper = (eventId, domainEvent) -> new DomainEventEnvelope(
                 eventId,
                 domainEvent.eventType(),
                 domainEvent.occurredAt(),

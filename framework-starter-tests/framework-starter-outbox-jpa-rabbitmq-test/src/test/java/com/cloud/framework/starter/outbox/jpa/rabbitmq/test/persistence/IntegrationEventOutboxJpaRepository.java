@@ -1,6 +1,5 @@
 package com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence;
 
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import java.time.Instant;
 import java.util.List;

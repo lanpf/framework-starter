@@ -7,11 +7,11 @@ import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventOutbox;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.config.JpaOutboxTestConfiguration;
+import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.IntegrationEventOutboxDO;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.IntegrationEventOutboxJpaPersistenceRepository;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.IntegrationEventOutboxJpaRepository;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.support.PausableAsyncTaskExecutor;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import com.cloud.framework.starter.outbox.publisher.PartitionedIntegrationEventPublisher;
 import com.cloud.framework.starter.outbox.reliable.ReliableIntegrationEventOutbox;
@@ -149,7 +149,7 @@ class ReliableEventOutboxJpaRabbitMqIT {
         assertThat(context.getBean(IntegrationEventOutbox.class)).isInstanceOf(ReliableIntegrationEventOutbox.class);
         assertThat(context.getBean(IntegrationEventPublisher.class))
                 .isInstanceOf(PartitionedIntegrationEventPublisher.class);
-        assertThat(context.getBean(IntegrationEventOutboxPersistenceRepository.class))
+        assertThat(context.getBean(IntegrationEventOutboxEnvelopePersistenceRepository.class))
                 .isInstanceOf(IntegrationEventOutboxJpaPersistenceRepository.class);
     }
 

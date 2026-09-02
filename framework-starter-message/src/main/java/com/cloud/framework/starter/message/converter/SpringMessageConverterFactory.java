@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -12,6 +13,7 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.ClassUtils;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SpringMessageConverterFactory {
 
@@ -43,7 +45,8 @@ public final class SpringMessageConverterFactory {
                         .getDeclaredConstructor()
                         .newInstance());
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException
-                     | IllegalAccessException | NoSuchMethodException ignored) {
+                     | IllegalAccessException | NoSuchMethodException ex) {
+                log.warn("Failed to register optional FastJSON message converter.", ex);
             }
         }
 

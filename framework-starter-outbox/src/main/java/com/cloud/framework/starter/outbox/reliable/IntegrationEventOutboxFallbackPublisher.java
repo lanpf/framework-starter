@@ -1,6 +1,6 @@
 package com.cloud.framework.starter.outbox.reliable;
 
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 public class IntegrationEventOutboxFallbackPublisher {
     private static final int MAX_ERROR_LENGTH = 1024;
 
-    private final IntegrationEventOutboxPersistenceRepository repository;
+    private final IntegrationEventOutboxEnvelopePersistenceRepository repository;
     private final IntegrationEventOutboxPublisher outboxPublisher;
     private final Clock clock;
 

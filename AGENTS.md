@@ -1,4 +1,4 @@
-<!-- engineering-standards:begin version=1.2.3 -->
+<!-- engineering-standards:begin version=2.1.11 -->
 ## Shared engineering guidance
 
 - **STD-HIERARCHY-001** — Shared rules apply to every project; service rules additionally apply to service projects, and project-specific authoritative documents may only add or tighten constraints.
@@ -13,11 +13,14 @@
 
 ## Skill routing
 
-- Creating, modifying, refactoring, or reviewing Java code: use `$develop-java-code`.
-- Changing Maven dependencies, versions, scopes, BOMs, starters, modules, or runtime implementations: use `$manage-java-dependencies`.
-- Creating, modifying, reviewing, or diagnosing unit, contract, or integration tests: use `$test-java-service`.
-- Adding service functionality, modules, contracts, domain behavior, adapters, protocols, or reviewing service architecture: use `$develop-layered-service`.
-- Allocating, changing, documenting, or reviewing service error codes: use `$manage-service-error-codes`.
-- Planning or applying cross-layer Java service refactors, including changes driven by updated engineering standards: use `$refactor-java-service`.
+- Developing, changing, or reviewing service code under the shared engineering standards during development: use `$develop-service-code`.
+- Implementing or reviewing cross-instance locking, reliable event publication, message consumption, partitioning, dead letters, delayed messages, or related failure handling.: use `$develop-distributed-capabilities`.
+- Designing, implementing, or reviewing compensation, reconciliation, repair, cleanup, batch recovery, or fallback workflows: use `$develop-compensation-workflows`.
+- Writing, running, or reviewing integration tests in the smoke-test phase: use `$test-integration`.
+- Planning or applying coordinated standards-driven layered service refactors: use `$refactor-layered-service`.
 
 <!-- engineering-standards:end -->
+
+## Project documentation entry
+
+- Project documentation entry: `docs/RESPONSIBILITIES.md` — module responsibilities and internal constraints of `framework-starter`; read it before changing any `framework-starter-*` module.

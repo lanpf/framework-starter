@@ -21,11 +21,11 @@ public class IntegrationEventOutboxSignalListener {
     private void publish(IntegrationEventOutboxSignal signal) {
         try {
             retryOperations.execute(context -> {
-                outboxPublisher.publish(signal.getBatchId());
+                outboxPublisher.publish(signal.batchId());
                 return null;
             });
         } catch (Exception ex) {
-            log.error("Integration event outbox signal exhausted retries. batchId={}", signal.getBatchId(), ex);
+            log.error("Integration event outbox signal exhausted retries. batchId={}", signal.batchId(), ex);
         }
     }
 }

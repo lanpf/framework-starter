@@ -1,6 +1,7 @@
 package com.cloud.framework.starter.scheduler.xxljob;
 
 import com.cloud.framework.core.naming.Namespaced;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -39,4 +40,9 @@ public class XxlJobSchedulerProperties implements Namespaced {
     @NotNull
     @Min(3)
     private Integer logRetentionDays = 30;
+
+    @AssertTrue(message = "scheduler.xxljob.admin-addresses must be set when enabled is true")
+    public boolean isAdminAddressesValid() {
+        return !this.enabled || (this.adminAddresses != null && !this.adminAddresses.isBlank());
+    }
 }

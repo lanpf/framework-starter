@@ -4,6 +4,7 @@ import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventOutbox;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class DirectIntegrationEventOutbox implements IntegrationEventOutbox {
 
     @Override
     public void appendAll(List<? extends IntegrationEvent> events) {
-        if (events == null || events.isEmpty()) {
+        if (CollectionUtils.isEmpty(events)) {
             return;
         }
         integrationEventPublisher.publishAll(events);

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Dependency Management"
-  short_description: "Manage Maven modules, scopes, BOMs, and framework dependencies"
-  default_prompt: "Use $manage-java-dependencies to change or review Maven dependencies and module relationships."

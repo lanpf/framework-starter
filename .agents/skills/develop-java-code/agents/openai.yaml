@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Development"
-  short_description: "Implement and review Java code under shared coding rules"
-  default_prompt: "Use $develop-java-code to implement or review Java code under the shared standards."

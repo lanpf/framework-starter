@@ -2,50 +2,48 @@ package com.cloud.framework.starter.outbox.reliable;
 
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceMapper;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
+import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPayloadConverter;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Clock;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
 @RequiredArgsConstructor
 public class IntegrationEventOutboxPublisher {
-    private final IntegrationEventOutboxPersistenceRepository repository;
-    private final IntegrationEventOutboxPersistenceMapper mapper;
-    private final IntegrationEventPublisher integrationEventPublisher;
+    private final IntegrationEventOutboxEnvelopePersistenceRepository repository;
+    private final IntegrationEventOutboxPayloadConverter converter;
+    private final IntegrationEventPublisher eventPublisher;
     private final Clock clock;
 
     @Transactional
     public boolean publish(@NotBlank String batchId) {
-        List<IntegrationEventOutboxDO> outboxEvents = repository.findByBatchId(batchId);
-        if (outboxEvents.isEmpty() || outboxEvents.stream().anyMatch(this::isNotPending)) {
+        List<IntegrationEventOutboxEnvelope> outboxEvents = repository.findByBatchId(batchId);
+        if (CollectionUtils.isEmpty(outboxEvents) || outboxEvents.stream().anyMatch(outbox -> outbox.status() != OutboxStatus.PENDING)) {
             return false;
         }
 
         Integer claimedCount = repository.markPublishingByBatchId(batchId, clock.instant());
-        if (!Integer.valueOf(outboxEvents.size()).equals(claimedCount)) {
+        if (!ObjectUtils.nullSafeEquals(claimedCount, outboxEvents.size())) {
             return false;
         }
 
         List<IntegrationEvent> events = outboxEvents.stream()
-                .map(mapper::toIntegrationEvent)
+                .map(converter::deserialize)
                 .toList();
-        integrationEventPublisher.publishAll(events);
+        eventPublisher.publishAll(events);
 
         Integer publishedCount = repository.markPublishedByBatchId(batchId, clock.instant());
-        if (!Integer.valueOf(outboxEvents.size()).equals(publishedCount)) {
+        if (!ObjectUtils.nullSafeEquals(publishedCount, outboxEvents.size())) {
             throw new IllegalStateException("Failed to mark integration event batch as published: " + batchId);
         }
         return true;
-    }
-
-    private boolean isNotPending(IntegrationEventOutboxDO outbox) {
-        return outbox.getStatus() != OutboxStatus.PENDING;
     }
 }

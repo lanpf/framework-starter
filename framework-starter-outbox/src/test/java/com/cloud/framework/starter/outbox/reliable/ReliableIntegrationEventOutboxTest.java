@@ -1,15 +1,15 @@
 package com.cloud.framework.starter.outbox.reliable;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cloud.framework.message.integration.IntegrationEvent;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceMapper;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceMapper;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -24,30 +24,24 @@ class ReliableIntegrationEventOutboxTest {
 
     @Test
     void assignsOneBatchAndPublishesABatchSignal() {
-        IntegrationEventOutboxPersistenceRepository repository = mock(IntegrationEventOutboxPersistenceRepository.class);
-        IntegrationEventOutboxPersistenceMapper mapper = mock(IntegrationEventOutboxPersistenceMapper.class);
+        IntegrationEventOutboxEnvelopePersistenceRepository repository = mock(IntegrationEventOutboxEnvelopePersistenceRepository.class);
+        IntegrationEventOutboxEnvelopePersistenceMapper mapper = mock(IntegrationEventOutboxEnvelopePersistenceMapper.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
         IntegrationEvent firstEvent = event("event-1");
         IntegrationEvent secondEvent = event("event-2");
-        IntegrationEventOutboxDO firstOutbox = new IntegrationEventOutboxDO();
-        firstOutbox.setEventId("event-1");
-        IntegrationEventOutboxDO secondOutbox = new IntegrationEventOutboxDO();
-        secondOutbox.setEventId("event-2");
-        when(mapper.toDataObject(firstEvent, NOW)).thenReturn(firstOutbox);
-        when(mapper.toDataObject(secondEvent, NOW)).thenReturn(secondOutbox);
+        IntegrationEventOutboxEnvelope firstEnvelope = envelope("event-1", "event-1", 0);
+        IntegrationEventOutboxEnvelope secondEnvelope = envelope("event-2", "event-1", 1);
+        when(mapper.toEnvelope(firstEvent, NOW, "event-1", 0)).thenReturn(firstEnvelope);
+        when(mapper.toEnvelope(secondEvent, NOW, "event-1", 1)).thenReturn(secondEnvelope);
         ReliableIntegrationEventOutbox outbox =
                 new ReliableIntegrationEventOutbox(repository, mapper, eventPublisher, CLOCK);
 
         outbox.appendAll(List.of(firstEvent, secondEvent));
 
-        assertThat(firstOutbox.getBatchId()).isEqualTo("event-1");
-        assertThat(firstOutbox.getBatchSequence()).isZero();
-        assertThat(secondOutbox.getBatchId()).isEqualTo("event-1");
-        assertThat(secondOutbox.getBatchSequence()).isEqualTo(1);
+        verify(repository).saveAll(List.of(firstEnvelope, secondEnvelope));
         ArgumentCaptor<IntegrationEventOutboxSignal> signal = ArgumentCaptor.forClass(IntegrationEventOutboxSignal.class);
         verify(eventPublisher).publishEvent(signal.capture());
-        assertThat(signal.getValue().getBatchId()).isEqualTo("event-1");
-        verify(repository).saveAll(any());
+        assertThat(signal.getValue().batchId()).isEqualTo("event-1");
     }
 
     private IntegrationEvent event(String eventId) {
@@ -56,5 +50,26 @@ class ReliableIntegrationEventOutboxTest {
         when(event.getAggregateType()).thenReturn("TestAggregate");
         when(event.getAggregateId()).thenReturn("aggregate-1");
         return event;
+    }
+
+    private IntegrationEventOutboxEnvelope envelope(String eventId, String batchId, int batchSequence) {
+        return new IntegrationEventOutboxEnvelope(
+                eventId,
+                "TestEvent",
+                null,
+                batchId,
+                batchSequence,
+                "TestAggregate",
+                "aggregate-1",
+                NOW,
+                "payload",
+                OutboxStatus.PENDING,
+                0,
+                null,
+                null,
+                null,
+                NOW,
+                NOW
+        );
     }
 }

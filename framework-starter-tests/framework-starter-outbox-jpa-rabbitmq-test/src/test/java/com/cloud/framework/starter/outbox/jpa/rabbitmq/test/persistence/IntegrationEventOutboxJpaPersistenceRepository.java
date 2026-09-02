@@ -1,7 +1,7 @@
 package com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence;
 
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import java.time.Instant;
 import java.util.List;
@@ -10,17 +10,20 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-public class IntegrationEventOutboxJpaPersistenceRepository implements IntegrationEventOutboxPersistenceRepository {
+public class IntegrationEventOutboxJpaPersistenceRepository implements IntegrationEventOutboxEnvelopePersistenceRepository {
     private final IntegrationEventOutboxJpaRepository repository;
+    private final IntegrationEventOutboxJpaPersistenceMapper mapper;
 
     @Override
-    public void saveAll(List<IntegrationEventOutboxDO> events) {
-        this.repository.saveAll(events);
+    public void saveAll(List<IntegrationEventOutboxEnvelope> events) {
+        this.repository.saveAll(events.stream().map(this.mapper::toDataObject).toList());
     }
 
     @Override
-    public List<IntegrationEventOutboxDO> findByBatchId(String batchId) {
-        return this.repository.findByBatchIdOrderByBatchSequenceAsc(batchId);
+    public List<IntegrationEventOutboxEnvelope> findByBatchId(String batchId) {
+        return this.repository.findByBatchIdOrderByBatchSequenceAsc(batchId).stream()
+                .map(this.mapper::toEnvelope)
+                .toList();
     }
 
     @Override

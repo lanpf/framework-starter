@@ -2,50 +2,48 @@ package com.cloud.framework.starter.outbox.reliable;
 
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventOutbox;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceMapper;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceMapper;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 @RequiredArgsConstructor
 public class ReliableIntegrationEventOutbox implements IntegrationEventOutbox {
-    private final IntegrationEventOutboxPersistenceRepository repository;
-    private final IntegrationEventOutboxPersistenceMapper mapper;
+    private final IntegrationEventOutboxEnvelopePersistenceRepository repository;
+    private final IntegrationEventOutboxEnvelopePersistenceMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
     @Override
     public void appendAll(List<? extends IntegrationEvent> events) {
-        if (events == null || events.isEmpty()) {
+        if (CollectionUtils.isEmpty(events)) {
             return;
         }
         validateBatch(events);
         Instant createdAt = clock.instant();
-        List<IntegrationEventOutboxDO> outboxEvents = events.stream()
-                .map(event -> mapper.toDataObject(event, createdAt))
-                .toList();
-        String batchId = outboxEvents.get(0).getEventId();
-        for (int index = 0; index < outboxEvents.size(); index++) {
-            IntegrationEventOutboxDO outbox = outboxEvents.get(index);
-            outbox.setBatchId(batchId);
-            outbox.setBatchSequence(index);
+        String batchId = events.get(0).getEventId();
+        List<IntegrationEventOutboxEnvelope> envelopes = new ArrayList<>(events.size());
+        for (int index = 0; index < events.size(); index++) {
+            envelopes.add(this.mapper.toEnvelope(events.get(index), createdAt, batchId, index));
         }
-        repository.saveAll(outboxEvents);
+        repository.saveAll(envelopes);
         publishSignalAfterCommit(batchId);
     }
 
     private void validateBatch(List<? extends IntegrationEvent> events) {
         IntegrationEvent firstEvent = events.get(0);
         boolean sameAggregate = events.stream().allMatch(event ->
-                Objects.equals(firstEvent.getAggregateType(), event.getAggregateType())
-                        && Objects.equals(firstEvent.getAggregateId(), event.getAggregateId())
+                ObjectUtils.nullSafeEquals(firstEvent.getAggregateType(), event.getAggregateType())
+                        && ObjectUtils.nullSafeEquals(firstEvent.getAggregateId(), event.getAggregateId())
         );
         if (!sameAggregate) {
             throw new IllegalArgumentException("Integration event outbox batch must belong to one aggregate.");

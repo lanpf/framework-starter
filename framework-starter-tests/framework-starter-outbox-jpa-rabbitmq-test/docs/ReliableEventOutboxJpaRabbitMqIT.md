@@ -30,7 +30,7 @@ persistence/
 其中：
 
 - `IntegrationEventOutboxJpaRepository` 继承 Spring Data JPA 的 `JpaRepository`。
-- `IntegrationEventOutboxJpaPersistenceRepository` 实现框架的 `IntegrationEventOutboxPersistenceRepository`。
+- `IntegrationEventOutboxJpaPersistenceRepository` 实现框架的 `IntegrationEventOutboxEnvelopePersistenceRepository`。
 - `JpaOutboxTestConfiguration` 负责实体扫描、JPA repository 扫描和 persistence port 装配。
 - 每个 Spring 上下文使用独立的 H2 内存数据库，避免两个测试消费者共享应用内数据库状态。
 - RabbitMQ 由 Testcontainers 创建，两个 Spring 上下文连接同一个真实 broker。

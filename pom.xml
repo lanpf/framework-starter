@@ -6,7 +6,7 @@
 
     <groupId>com.cloud</groupId>
     <artifactId>framework-starter</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>framework-starter</name>
@@ -35,7 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <framework.version>0.3.0-SNAPSHOT</framework.version>
+        <framework.version>0.4.0-SNAPSHOT</framework.version>
     </properties>
 
     <dependencyManagement>

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Layered Service Development"
-  short_description: "Implement and review layered Spring Boot service changes"
-  default_prompt: "Use $develop-layered-service to design or modify a layered Spring Boot service."

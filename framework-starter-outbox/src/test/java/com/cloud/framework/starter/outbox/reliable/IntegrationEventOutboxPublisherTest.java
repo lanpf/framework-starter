@@ -7,10 +7,10 @@ import static org.mockito.Mockito.when;
 
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxDO;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceMapper;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
+import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPayloadConverter;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -23,22 +23,22 @@ class IntegrationEventOutboxPublisherTest {
 
     @Test
     void publishesAndMarksTheWholeBatch() {
-        IntegrationEventOutboxPersistenceRepository repository = mock(IntegrationEventOutboxPersistenceRepository.class);
-        IntegrationEventOutboxPersistenceMapper mapper = mock(IntegrationEventOutboxPersistenceMapper.class);
+        IntegrationEventOutboxEnvelopePersistenceRepository repository = mock(IntegrationEventOutboxEnvelopePersistenceRepository.class);
+        IntegrationEventOutboxPayloadConverter converter = mock(IntegrationEventOutboxPayloadConverter.class);
         IntegrationEventPublisher eventPublisher = mock(IntegrationEventPublisher.class);
-        IntegrationEventOutboxDO firstOutbox = outbox("event-1", 0);
-        IntegrationEventOutboxDO secondOutbox = outbox("event-2", 1);
+        IntegrationEventOutboxEnvelope firstEnvelope = envelope("event-1", 0);
+        IntegrationEventOutboxEnvelope secondEnvelope = envelope("event-2", 1);
         IntegrationEvent firstEvent = mock(IntegrationEvent.class);
         IntegrationEvent secondEvent = mock(IntegrationEvent.class);
-        when(repository.findByBatchId("batch-1")).thenReturn(List.of(firstOutbox, secondOutbox));
+        when(repository.findByBatchId("batch-1")).thenReturn(List.of(firstEnvelope, secondEnvelope));
         when(repository.markPublishingByBatchId("batch-1", NOW))
                 .thenReturn(2);
         when(repository.markPublishedByBatchId("batch-1", NOW))
                 .thenReturn(2);
-        when(mapper.toIntegrationEvent(firstOutbox)).thenReturn(firstEvent);
-        when(mapper.toIntegrationEvent(secondOutbox)).thenReturn(secondEvent);
+        when(converter.deserialize(firstEnvelope)).thenReturn(firstEvent);
+        when(converter.deserialize(secondEnvelope)).thenReturn(secondEvent);
         IntegrationEventOutboxPublisher publisher =
-                new IntegrationEventOutboxPublisher(repository, mapper, eventPublisher, CLOCK);
+                new IntegrationEventOutboxPublisher(repository, converter, eventPublisher, CLOCK);
 
         assertThat(publisher.publish("batch-1")).isTrue();
 
@@ -49,12 +49,24 @@ class IntegrationEventOutboxPublisherTest {
         );
     }
 
-    private IntegrationEventOutboxDO outbox(String eventId, Integer batchSequence) {
-        IntegrationEventOutboxDO outbox = new IntegrationEventOutboxDO();
-        outbox.setEventId(eventId);
-        outbox.setBatchId("batch-1");
-        outbox.setBatchSequence(batchSequence);
-        outbox.setStatus(OutboxStatus.PENDING);
-        return outbox;
+    private IntegrationEventOutboxEnvelope envelope(String eventId, Integer batchSequence) {
+        return new IntegrationEventOutboxEnvelope(
+                eventId,
+                "TestEvent",
+                null,
+                "batch-1",
+                batchSequence,
+                "TestAggregate",
+                "aggregate-1",
+                NOW,
+                "payload",
+                OutboxStatus.PENDING,
+                0,
+                null,
+                null,
+                null,
+                NOW,
+                NOW
+        );
     }
 }

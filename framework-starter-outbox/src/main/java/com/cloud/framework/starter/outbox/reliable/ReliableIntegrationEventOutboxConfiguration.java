@@ -3,9 +3,10 @@ package com.cloud.framework.starter.outbox.reliable;
 import com.cloud.framework.message.integration.IntegrationEventOutbox;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
 import com.cloud.framework.starter.outbox.IntegrationEventOutboxProperties;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceMapper;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxPersistenceRepository;
-import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPersistenceMapperConfiguration;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceMapper;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopeConfiguration;
+import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPayloadConverter;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration(proxyBeanMethods = false)
-@Import(IntegrationEventOutboxPersistenceMapperConfiguration.class)
+@Import(IntegrationEventOutboxEnvelopeConfiguration.class)
 @ConditionalOnProperty(prefix = "framework.outbox.integration-event", name = "mode", havingValue = "reliable")
 public class ReliableIntegrationEventOutboxConfiguration {
     public static final String TASK_EXECUTOR_BEAN_NAME = "integrationEventOutboxTaskExecutor";
@@ -92,8 +93,8 @@ public class ReliableIntegrationEventOutboxConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IntegrationEventOutbox reliableIntegrationEventOutbox(
-            IntegrationEventOutboxPersistenceRepository repository,
-            IntegrationEventOutboxPersistenceMapper mapper,
+            IntegrationEventOutboxEnvelopePersistenceRepository repository,
+            IntegrationEventOutboxEnvelopePersistenceMapper mapper,
             ApplicationEventPublisher eventPublisher,
             ObjectProvider<Clock> clockProvider
     ) {
@@ -103,14 +104,14 @@ public class ReliableIntegrationEventOutboxConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IntegrationEventOutboxPublisher integrationEventOutboxPublisher(
-            IntegrationEventOutboxPersistenceRepository repository,
-            IntegrationEventOutboxPersistenceMapper mapper,
+            IntegrationEventOutboxEnvelopePersistenceRepository repository,
+            IntegrationEventOutboxPayloadConverter payloadConverter,
             IntegrationEventPublisher integrationEventPublisher,
             ObjectProvider<Clock> clockProvider
     ) {
         return new IntegrationEventOutboxPublisher(
                 repository,
-                mapper,
+                payloadConverter,
                 integrationEventPublisher,
                 resolveClock(clockProvider)
         );
@@ -129,7 +130,7 @@ public class ReliableIntegrationEventOutboxConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IntegrationEventOutboxFallbackPublisher integrationEventOutboxFallbackPublisher(
-            IntegrationEventOutboxPersistenceRepository repository,
+            IntegrationEventOutboxEnvelopePersistenceRepository repository,
             IntegrationEventOutboxPublisher outboxPublisher,
             ObjectProvider<Clock> clockProvider
     ) {

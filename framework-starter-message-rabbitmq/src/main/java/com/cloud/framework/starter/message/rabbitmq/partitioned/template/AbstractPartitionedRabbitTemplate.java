@@ -34,13 +34,13 @@ public abstract class AbstractPartitionedRabbitTemplate implements PartitionedRa
         PartitionedRabbitMessageSupport.setPartitionHeader(message, partitionArg);
         this.publisherConfirm.send(
                 () -> this.rabbitTemplate.send(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         message
                 ),
                 correlationData -> this.rabbitTemplate.send(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         message,
                         correlationData
                 )
@@ -62,8 +62,8 @@ public abstract class AbstractPartitionedRabbitTemplate implements PartitionedRa
                 CorrelationData correlationData = new CorrelationData();
                 correlationDataList.add(correlationData);
                 operations.send(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         message,
                         correlationData
                 );
@@ -86,14 +86,14 @@ public abstract class AbstractPartitionedRabbitTemplate implements PartitionedRa
         RabbitRoute route = route(destination, partitionArg);
         this.publisherConfirm.send(
                 () -> this.rabbitTemplate.convertAndSend(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         payload,
                         PartitionedRabbitMessageSupport.partitionHeaderPostProcessor(headers, partitionArg)
                 ),
                 correlationData -> this.rabbitTemplate.convertAndSend(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         payload,
                         PartitionedRabbitMessageSupport.partitionHeaderPostProcessor(headers, partitionArg),
                         correlationData
@@ -119,8 +119,8 @@ public abstract class AbstractPartitionedRabbitTemplate implements PartitionedRa
                 CorrelationData correlationData = new CorrelationData();
                 correlationDataList.add(correlationData);
                 operations.convertAndSend(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         payload,
                         PartitionedRabbitMessageSupport.partitionHeaderPostProcessor(headers, partitionArg),
                         correlationData

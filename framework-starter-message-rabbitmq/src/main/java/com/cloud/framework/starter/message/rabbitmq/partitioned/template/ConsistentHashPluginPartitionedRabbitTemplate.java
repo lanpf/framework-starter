@@ -1,6 +1,6 @@
 package com.cloud.framework.starter.message.rabbitmq.partitioned.template;
 
-import com.cloud.framework.message.support.MessageHeaders;
+import com.cloud.framework.message.support.PartitionKeyResolver;
 import com.cloud.framework.starter.message.rabbitmq.partitioned.PartitionedRabbitTopologyRegistry;
 import com.cloud.framework.starter.message.rabbitmq.partitioned.support.PartitionedRabbitMessageSupport;
 import com.cloud.framework.starter.message.rabbitmq.reliability.RabbitPublisherConfirm;
@@ -20,7 +20,7 @@ public class ConsistentHashPluginPartitionedRabbitTemplate extends AbstractParti
     protected RabbitRoute route(String destination, Object partitionArg) {
         return new RabbitRoute(
                 PartitionedRabbitMessageSupport.exchange(destination),
-                MessageHeaders.resolvePartitionKey(partitionArg).toString()
+                PartitionKeyResolver.resolve(partitionArg).toString()
         );
     }
 }

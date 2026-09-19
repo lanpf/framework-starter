@@ -1,6 +1,7 @@
 package com.cloud.framework.starter.message.rabbitmq.partitioned.support;
 
 import com.cloud.framework.message.support.MessageHeaders;
+import com.cloud.framework.message.support.PartitionKeyResolver;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.amqp.core.Message;
@@ -49,7 +50,7 @@ public final class PartitionedRabbitMessageSupport {
     }
 
     public static void setPartitionHeader(Message message, Object partitionArg) {
-        message.getMessageProperties().setHeader(MessageHeaders.PARTITION_KEY, MessageHeaders.resolvePartitionKey(partitionArg));
+        message.getMessageProperties().setHeader(MessageHeaders.PARTITION_KEY, PartitionKeyResolver.resolve(partitionArg));
     }
 
     public static MessagePostProcessor partitionHeaderPostProcessor(Map<String, Object> headers, Object partitionArg) {

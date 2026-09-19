@@ -34,13 +34,13 @@ public class BinaryDelayedRabbitTemplate implements DelayedRabbitTemplate {
         RabbitRoute route = route(destination, delay);
         this.publisherConfirm.send(
                 () -> this.rabbitTemplate.send(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         message
                 ),
                 correlationData -> this.rabbitTemplate.send(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         message,
                         correlationData
                 )
@@ -57,8 +57,8 @@ public class BinaryDelayedRabbitTemplate implements DelayedRabbitTemplate {
                 CorrelationData correlationData = new CorrelationData();
                 correlationDataList.add(correlationData);
                 operations.send(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         message,
                         correlationData
                 );
@@ -79,14 +79,14 @@ public class BinaryDelayedRabbitTemplate implements DelayedRabbitTemplate {
         Map<String, Object> headers = headersSupplier.apply(payload);
         this.publisherConfirm.send(
                 () -> this.rabbitTemplate.convertAndSend(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         payload,
                         DelayedRabbitMessageSupport.headersPostProcessor(headers)
                 ),
                 correlationData -> this.rabbitTemplate.convertAndSend(
-                        route.getExchange(),
-                        route.getRoutingKey(),
+                        route.exchange(),
+                        route.routingKey(),
                         payload,
                         DelayedRabbitMessageSupport.headersPostProcessor(headers),
                         correlationData
@@ -109,8 +109,8 @@ public class BinaryDelayedRabbitTemplate implements DelayedRabbitTemplate {
                         CorrelationData correlationData = new CorrelationData();
                         correlationDataList.add(correlationData);
                         operations.convertAndSend(
-                                route.getExchange(),
-                                route.getRoutingKey(),
+                                route.exchange(),
+                                route.routingKey(),
                                 payload,
                                 DelayedRabbitMessageSupport.headersPostProcessor(headersSupplier.apply(payload)),
                                 correlationData

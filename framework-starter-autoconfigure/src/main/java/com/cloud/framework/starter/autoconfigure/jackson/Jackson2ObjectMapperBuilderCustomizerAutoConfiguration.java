@@ -20,7 +20,7 @@ import java.util.TimeZone;
 @AutoConfiguration
 @ConditionalOnClass(Jackson2ObjectMapperBuilder.class)
 @EnableConfigurationProperties(JacksonProperties.class)
-public class Jackson2ObjectMapperBuilderCustomizerConfiguration {
+public class Jackson2ObjectMapperBuilderCustomizerAutoConfiguration {
     private final JacksonProperties jacksonProperties;
 
     @Bean

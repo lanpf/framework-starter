@@ -27,9 +27,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 @ConditionalOnClass({RabbitTemplate.class, CachingConnectionFactory.class})
 @EnableConfigurationProperties(RabbitMessageProperties.class)
 @Import({
-        RabbitReliabilityAutoConfiguration.ProducerTransactionConfiguration.class,
-        RabbitReliabilityAutoConfiguration.PublisherConfirmConfiguration.class,
-        RabbitReliabilityAutoConfiguration.ConsumerTransactionConfiguration.class
+        RabbitReliabilityAutoConfiguration.ProducerTransactionAutoConfiguration.class,
+        RabbitReliabilityAutoConfiguration.PublisherConfirmAutoConfiguration.class,
+        RabbitReliabilityAutoConfiguration.ConsumerTransactionAutoConfiguration.class
 })
 public class RabbitReliabilityAutoConfiguration {
 
@@ -39,7 +39,7 @@ public class RabbitReliabilityAutoConfiguration {
             name = "reliability-mode",
             havingValue = "transaction"
     )
-    static class ProducerTransactionConfiguration {
+    static class ProducerTransactionAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(name = "rabbitProducerReliabilityBeanPostProcessor")
@@ -75,7 +75,7 @@ public class RabbitReliabilityAutoConfiguration {
             name = "reliability-mode",
             havingValue = "publisher-confirm"
     )
-    static class PublisherConfirmConfiguration {
+    static class PublisherConfirmAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(name = "rabbitProducerReliabilityBeanPostProcessor")
@@ -112,7 +112,7 @@ public class RabbitReliabilityAutoConfiguration {
             name = "reliability-mode",
             havingValue = "transaction"
     )
-    static class ConsumerTransactionConfiguration {
+    static class ConsumerTransactionAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(name = "rabbitConsumerTransactionBeanPostProcessor")

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(prefix = "domain-event.store", name = "mode", havingValue = "noop")
-public class NoopDomainEventStoreConfiguration {
+public class NoopDomainEventStoreAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DomainEventStore noopDomainEventStore() {

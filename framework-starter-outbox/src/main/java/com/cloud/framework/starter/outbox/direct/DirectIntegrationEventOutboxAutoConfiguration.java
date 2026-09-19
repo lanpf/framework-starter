@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(prefix = "framework.outbox.integration-event", name = "mode", havingValue = "direct", matchIfMissing = true)
-public class DirectIntegrationEventOutboxConfiguration {
+public class DirectIntegrationEventOutboxAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IntegrationEventOutbox directIntegrationEventOutbox(

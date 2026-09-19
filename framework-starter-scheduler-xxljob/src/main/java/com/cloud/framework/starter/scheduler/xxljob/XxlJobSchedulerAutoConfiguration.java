@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @AutoConfigureAfter(name = "com.cloud.framework.starter.autoconfigure.naming.NamespaceAutoConfiguration")
 @ConditionalOnClass(XxlJobSpringExecutor.class)
-@Import(XxlJobSchedulerAutoConfiguration.EnabledXxlJobConfiguration.class)
+@Import(XxlJobSchedulerAutoConfiguration.EnabledXxlJobAutoConfiguration.class)
 public class XxlJobSchedulerAutoConfiguration {
 
     @Bean
@@ -27,7 +27,7 @@ public class XxlJobSchedulerAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnProperty(prefix = "scheduler.xxljob", name = "enabled", havingValue = "true")
-    static class EnabledXxlJobConfiguration {
+    static class EnabledXxlJobAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean

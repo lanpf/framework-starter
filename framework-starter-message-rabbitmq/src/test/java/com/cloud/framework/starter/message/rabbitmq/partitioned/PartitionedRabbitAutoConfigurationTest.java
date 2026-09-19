@@ -86,7 +86,7 @@ class PartitionedRabbitAutoConfigurationTest {
     @Test
     void configuresTemplateWhenRequiredBeansExist() {
         this.contextRunner
-                .withUserConfiguration(RabbitTemplateConfiguration.class, PublisherConfirmConfiguration.class)
+                .withUserConfiguration(RabbitTemplateConfiguration.class, PublisherConfirmAutoConfiguration.class)
                 .run(context -> assertThat(context).hasSingleBean(PartitionedRabbitTemplate.class));
     }
 
@@ -118,7 +118,7 @@ class PartitionedRabbitAutoConfigurationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
-    static class PublisherConfirmConfiguration {
+    static class PublisherConfirmAutoConfiguration {
 
         @Bean
         RabbitPublisherConfirm rabbitPublisherConfirm() {

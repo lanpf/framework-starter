@@ -26,7 +26,7 @@
 
 ## 自动配置组织
 
-- 自动配置根类聚合该能力的公共 Bean；由配置项切换的互斥实现按语义拆分为独立或嵌套的 `*Configuration`。
+- 自动配置根类聚合该能力的公共 Bean；由配置项切换的互斥实现按语义拆分为独立或嵌套的 `*AutoConfiguration`。
 - 模式、类型和算法等分支条件声明在对应配置类上，不将同一分支的条件散落到多个 Bean 方法；相互独立的能力使用独立自动配置类。
 - Spring Boot 已自动配置的 `ObjectMapper`、消息模板、任务执行器、事务管理器和数据源等基础设施 Bean 通过注入复用，不在 starter 中重复声明。
 - 所有自定义线程池复用 Spring Boot `TaskExecutionProperties.Pool` 属性模型，并优先使用对应 builder；线程名前缀、拒绝策略和调度策略等技术特有参数单独配置。
@@ -39,7 +39,7 @@
 
 - starter 内提供 `*Envelope` 持久化模型（record）、`*EnvelopePersistenceRepository`、`*EnvelopePersistenceMapper` 契约和默认编排；`OutboxStatus` 等状态枚举保持技术中立。
 - 转换契约声明在 `persistence` 包；MapStruct 实现放在契约包的 `mapstruct` 子包，命名 `*MapStructMapper`，通过 `uses` 引入同子包的 `*PayloadConverter` 完成 payload 序列化与反序列化。
-- `persistence/*EnvelopeConfiguration` 统一声明 converter 与 mapper Bean（`Mappers.getMapper` 实例化生成实现，`@ConditionalOnMissingBean` 允许替换），由能力配置类 `@Import`。
+- `persistence/*EnvelopeAutoConfiguration` 统一声明 converter 与 mapper Bean（`Mappers.getMapper` 实例化生成实现，`@ConditionalOnMissingBean` 允许替换），由能力配置类 `@Import`。
 - payload 序列化/反序列化失败抛 `FrameworkException(FrameworkError.SERIALIZATION_FAILED)`；`ObjectMapper` 复用 Spring Boot 自动配置的实例。
 - 技术注解 DO、DO↔Envelope 转换 mapper 与 repository 实现由服务或独立技术适配 module 提供（参考 `framework-starter-outbox-jpa-rabbitmq-test` 的 JPA 实现）。
 

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
-public class DomainEventEnvelopeConfiguration {
+public class DomainEventEnvelopeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     DomainEventPayloadConverter domainEventPayloadConverter(ObjectMapper objectMapper) {

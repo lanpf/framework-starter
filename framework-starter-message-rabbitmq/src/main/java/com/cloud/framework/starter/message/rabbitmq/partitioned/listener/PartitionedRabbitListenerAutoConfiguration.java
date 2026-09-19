@@ -39,8 +39,8 @@ import org.springframework.validation.Validator;
 )
 @ConditionalOnClass({ConnectionFactory.class, RabbitListenerEndpointRegistry.class})
 @Import({
-        PartitionedRabbitListenerAutoConfiguration.SimpleContainerConfiguration.class,
-        PartitionedRabbitListenerAutoConfiguration.DirectContainerConfiguration.class
+        PartitionedRabbitListenerAutoConfiguration.SimpleContainerAutoConfiguration.class,
+        PartitionedRabbitListenerAutoConfiguration.DirectContainerAutoConfiguration.class
 })
 public class PartitionedRabbitListenerAutoConfiguration {
 
@@ -86,7 +86,7 @@ public class PartitionedRabbitListenerAutoConfiguration {
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "spring.rabbitmq.listener.type", havingValue = "simple", matchIfMissing = true)
-    static class SimpleContainerConfiguration {
+    static class SimpleContainerAutoConfiguration {
 
         @Bean(name = PartitionedRabbitListenerAnnotationBeanPostProcessor.PARTITIONED_CONTAINER_FACTORY_BEAN_NAME)
         @ConditionalOnMissingBean(name = PartitionedRabbitListenerAnnotationBeanPostProcessor.PARTITIONED_CONTAINER_FACTORY_BEAN_NAME)
@@ -130,7 +130,7 @@ public class PartitionedRabbitListenerAutoConfiguration {
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "spring.rabbitmq.listener.type", havingValue = "direct")
-    static class DirectContainerConfiguration {
+    static class DirectContainerAutoConfiguration {
 
         @Bean(name = PartitionedRabbitListenerAnnotationBeanPostProcessor.PARTITIONED_CONTAINER_FACTORY_BEAN_NAME)
         @ConditionalOnMissingBean(name = PartitionedRabbitListenerAnnotationBeanPostProcessor.PARTITIONED_CONTAINER_FACTORY_BEAN_NAME)

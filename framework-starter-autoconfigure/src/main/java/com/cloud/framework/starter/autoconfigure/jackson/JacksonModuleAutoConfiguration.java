@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter;
 @AutoConfiguration
 @ConditionalOnClass(JavaTimeModule.class)
 @EnableConfigurationProperties(JacksonModuleProperties.class)
-public class JacksonModuleConfiguration {
+public class JacksonModuleAutoConfiguration {
     private final JacksonModuleProperties jacksonModuleProperties;
 
     @Bean

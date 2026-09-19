@@ -2,10 +2,10 @@ package com.cloud.framework.starter.outbox;
 
 import com.cloud.framework.message.PartitionedOperations;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
-import com.cloud.framework.starter.outbox.direct.DirectIntegrationEventOutboxConfiguration;
+import com.cloud.framework.starter.outbox.direct.DirectIntegrationEventOutboxAutoConfiguration;
 import com.cloud.framework.starter.outbox.publisher.NoopIntegrationEventPublisher;
 import com.cloud.framework.starter.outbox.publisher.PartitionedIntegrationEventPublisher;
-import com.cloud.framework.starter.outbox.reliable.ReliableIntegrationEventOutboxConfiguration;
+import com.cloud.framework.starter.outbox.reliable.ReliableIntegrationEventOutboxAutoConfiguration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -16,8 +16,8 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @EnableConfigurationProperties(IntegrationEventOutboxProperties.class)
 @Import({
-        DirectIntegrationEventOutboxConfiguration.class,
-        ReliableIntegrationEventOutboxConfiguration.class
+        DirectIntegrationEventOutboxAutoConfiguration.class,
+        ReliableIntegrationEventOutboxAutoConfiguration.class
 })
 public class IntegrationEventOutboxAutoConfiguration {
 

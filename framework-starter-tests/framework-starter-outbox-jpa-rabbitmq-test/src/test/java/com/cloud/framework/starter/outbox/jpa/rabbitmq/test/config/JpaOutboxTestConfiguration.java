@@ -7,7 +7,7 @@ import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.Integrat
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.mapstruct.IntegrationEventOutboxJpaMapStructMapper;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.support.PausableAsyncTaskExecutor;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
-import com.cloud.framework.starter.outbox.reliable.ReliableIntegrationEventOutboxConfiguration;
+import com.cloud.framework.starter.outbox.reliable.ReliableIntegrationEventOutboxAutoConfiguration;
 import org.mapstruct.factory.Mappers;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +31,7 @@ public class JpaOutboxTestConfiguration {
         return new IntegrationEventOutboxJpaPersistenceRepository(repository, mapper);
     }
 
-    @Bean(name = ReliableIntegrationEventOutboxConfiguration.TASK_EXECUTOR_BEAN_NAME, destroyMethod = "close")
+    @Bean(name = ReliableIntegrationEventOutboxAutoConfiguration.TASK_EXECUTOR_BEAN_NAME, destroyMethod = "close")
     public PausableAsyncTaskExecutor integrationEventOutboxTaskExecutor() {
         return new PausableAsyncTaskExecutor();
     }

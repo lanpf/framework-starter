@@ -18,7 +18,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 class DefaultDomainEventStoreConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(DefaultDomainEventStoreConfiguration.class)
+            .withUserConfiguration(DefaultDomainEventStoreAutoConfiguration.class)
             .withBean(ObjectMapper.class, ObjectMapper::new)
             .withBean(LongIdGenerator.class, () -> name -> 1L);
 

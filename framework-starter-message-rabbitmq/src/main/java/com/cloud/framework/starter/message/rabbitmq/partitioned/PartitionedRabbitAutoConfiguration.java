@@ -36,9 +36,9 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnClass(RabbitTemplate.class)
 @EnableConfigurationProperties(PartitionedRabbitProperties.class)
 @Import({
-        PartitionedRabbitAutoConfiguration.SelectorRoutingConfiguration.class,
-        PartitionedRabbitAutoConfiguration.ConsistentHashPluginRoutingConfiguration.class,
-        PartitionedRabbitAutoConfiguration.TopologyInitializationConfiguration.class
+        PartitionedRabbitAutoConfiguration.SelectorRoutingAutoConfiguration.class,
+        PartitionedRabbitAutoConfiguration.ConsistentHashPluginRoutingAutoConfiguration.class,
+        PartitionedRabbitAutoConfiguration.TopologyInitializationAutoConfiguration.class
 })
 public class PartitionedRabbitAutoConfiguration {
 
@@ -50,11 +50,11 @@ public class PartitionedRabbitAutoConfiguration {
             matchIfMissing = true
     )
     @Import({
-            SelectorRoutingConfiguration.HashSelectorConfiguration.class,
-            SelectorRoutingConfiguration.ConsistentHashSelectorConfiguration.class,
-            SelectorRoutingConfiguration.MissingConsistentHashDependencyConfiguration.class
+            SelectorRoutingAutoConfiguration.HashSelectorAutoConfiguration.class,
+            SelectorRoutingAutoConfiguration.ConsistentHashSelectorAutoConfiguration.class,
+            SelectorRoutingAutoConfiguration.MissingConsistentHashDependencyAutoConfiguration.class
     })
-    static class SelectorRoutingConfiguration {
+    static class SelectorRoutingAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
@@ -85,7 +85,7 @@ public class PartitionedRabbitAutoConfiguration {
                 havingValue = "hash",
                 matchIfMissing = true
         )
-        static class HashSelectorConfiguration {
+        static class HashSelectorAutoConfiguration {
 
             @Bean
             @ConditionalOnMissingBean
@@ -102,7 +102,7 @@ public class PartitionedRabbitAutoConfiguration {
                 havingValue = "consistent-hash"
         )
         @ConditionalOnClass(name = "com.google.common.hash.Hashing")
-        static class ConsistentHashSelectorConfiguration {
+        static class ConsistentHashSelectorAutoConfiguration {
 
             @Bean
             @ConditionalOnMissingBean
@@ -118,7 +118,7 @@ public class PartitionedRabbitAutoConfiguration {
                 havingValue = "consistent-hash"
         )
         @ConditionalOnMissingClass("com.google.common.hash.Hashing")
-        static class MissingConsistentHashDependencyConfiguration {
+        static class MissingConsistentHashDependencyAutoConfiguration {
 
             @Bean
             @ConditionalOnMissingBean
@@ -136,7 +136,7 @@ public class PartitionedRabbitAutoConfiguration {
             name = "routing-mode",
             havingValue = "consistent-hash-plugin"
     )
-    static class ConsistentHashPluginRoutingConfiguration {
+    static class ConsistentHashPluginRoutingAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
@@ -162,7 +162,7 @@ public class PartitionedRabbitAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @Conditional(TopologyInitializationCondition.class)
-    static class TopologyInitializationConfiguration {
+    static class TopologyInitializationAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(name = "partitionedRabbitTopologyInitializer")

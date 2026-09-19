@@ -5,7 +5,7 @@ import com.cloud.framework.message.integration.IntegrationEventPublisher;
 import com.cloud.framework.starter.outbox.IntegrationEventOutboxProperties;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceMapper;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopeConfiguration;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopeAutoConfiguration;
 import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPayloadConverter;
 import java.time.Clock;
 import java.util.LinkedHashMap;
@@ -30,9 +30,9 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration(proxyBeanMethods = false)
-@Import(IntegrationEventOutboxEnvelopeConfiguration.class)
+@Import(IntegrationEventOutboxEnvelopeAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "framework.outbox.integration-event", name = "mode", havingValue = "reliable")
-public class ReliableIntegrationEventOutboxConfiguration {
+public class ReliableIntegrationEventOutboxAutoConfiguration {
     public static final String TASK_EXECUTOR_BEAN_NAME = "integrationEventOutboxTaskExecutor";
     public static final String RETRY_OPERATIONS_BEAN_NAME = "integrationEventOutboxRetryOperations";
 

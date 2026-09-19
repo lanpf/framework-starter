@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Import;
 
 @AutoConfiguration
 @Import({
-        DefaultDomainEventStoreConfiguration.class,
-        NoopDomainEventStoreConfiguration.class
+        DefaultDomainEventStoreAutoConfiguration.class,
+        NoopDomainEventStoreAutoConfiguration.class
 })
 public class DomainEventStoreAutoConfiguration {
 }

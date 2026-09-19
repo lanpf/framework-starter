@@ -24,11 +24,11 @@ import static org.mockito.Mockito.when;
 
 class PartitionedRabbitListenerAutoConfigurationTest {
 
-    private final PartitionedRabbitListenerAutoConfiguration.SimpleContainerConfiguration simpleConfiguration =
-            new PartitionedRabbitListenerAutoConfiguration.SimpleContainerConfiguration();
+    private final PartitionedRabbitListenerAutoConfiguration.SimpleContainerAutoConfiguration simpleConfiguration =
+            new PartitionedRabbitListenerAutoConfiguration.SimpleContainerAutoConfiguration();
 
-    private final PartitionedRabbitListenerAutoConfiguration.DirectContainerConfiguration directConfiguration =
-            new PartitionedRabbitListenerAutoConfiguration.DirectContainerConfiguration();
+    private final PartitionedRabbitListenerAutoConfiguration.DirectContainerAutoConfiguration directConfiguration =
+            new PartitionedRabbitListenerAutoConfiguration.DirectContainerAutoConfiguration();
 
     @Test
     void shouldApplyOrderingConstraintsAfterSimpleContainerCustomizer() {

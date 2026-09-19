@@ -8,6 +8,7 @@ import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPayloadConverter;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
@@ -28,7 +29,7 @@ public class IntegrationEventOutboxPublisher {
             return false;
         }
 
-        var publishingAt = clock.instant();
+        Instant publishingAt = clock.instant();
         Integer claimedCount = repository.markPublishingByBatchId(batchId, publishingAt);
         if (!ObjectUtils.nullSafeEquals(claimedCount, outboxEvents.size())) {
             return false;

@@ -3,7 +3,7 @@ package com.cloud.framework.starter.outbox.persistence.mapstruct;
 import static org.assertj.core.api.Assertions.assertThat;
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
-import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopeConfiguration;
+import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopeAutoConfiguration;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceMapper;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +19,7 @@ class IntegrationEventOutboxEnvelopePersistenceMapperConfigurationTest {
     private static final Instant NOW = Instant.parse("2026-07-21T00:00:00Z");
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(IntegrationEventOutboxEnvelopeConfiguration.class)
+            .withUserConfiguration(IntegrationEventOutboxEnvelopeAutoConfiguration.class)
             .withBean(ObjectMapper.class, () -> new ObjectMapper().findAndRegisterModules());
 
     @Test

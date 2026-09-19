@@ -24,6 +24,9 @@ public interface IntegrationEventOutboxEnvelopeMapStructMapper
     @Mapping(target = "payload", source = "event")
     @Mapping(target = "status", expression = "java(OutboxStatus.PENDING)")
     @Mapping(target = "retryCount", constant = "0")
+    @Mapping(target = "publishedAt", ignore = true)
+    @Mapping(target = "failedAt", ignore = true)
+    @Mapping(target = "lastError", ignore = true)
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "createdAt")
     IntegrationEventOutboxEnvelope toEnvelope(

@@ -22,8 +22,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 class ReliableIntegrationEventOutboxConfigurationTest {
 
-    private final ReliableIntegrationEventOutboxConfiguration configuration =
-            new ReliableIntegrationEventOutboxConfiguration();
+    private final ReliableIntegrationEventOutboxAutoConfiguration configuration =
+            new ReliableIntegrationEventOutboxAutoConfiguration();
 
     @Test
     void shouldBindRetryableStyleProperties() {

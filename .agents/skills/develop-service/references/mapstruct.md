@@ -10,5 +10,5 @@
 ## Reuse and configuration
 
 - **MAPSTRUCT-REUSE-001** **[REQUIRED][BASELINE]** — Reuse existing mappers through `@Mapper(uses = {...})` instead of duplicating field-level conversions.
-- **MAPSTRUCT-CONFIG-001** **[REQUIRED][BASELINE]** — Declare `componentModel = spring` and `unmappedTargetPolicy = ERROR` in a shared `@MapperConfig`; reference it from each mapper and explicitly mark intentionally ignored fields with `ignore = true`.
+- **MAPSTRUCT-CONFIG-001** **[REQUIRED][BASELINE]** — Declare `componentModel = spring` and `unmappedTargetPolicy = ERROR` in a shared `@MapperConfig`; reference it from each mapper and explicitly mark intentionally unmapped target fields with `ignore = true`. Partial updates and projections may use local `ignoreByDefault = true` or `IGNORE` for whitelist mappings, but must not change the shared default.
 - **MAPSTRUCT-HELPER-001** **[REQUIRED][BASELINE]** — Keep generic converters and helpers private to mapper use and do not expose them as business components.

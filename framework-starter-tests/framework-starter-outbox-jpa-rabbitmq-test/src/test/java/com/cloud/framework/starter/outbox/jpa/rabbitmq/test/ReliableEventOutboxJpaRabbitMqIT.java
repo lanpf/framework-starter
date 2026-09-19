@@ -6,7 +6,7 @@ import static org.awaitility.Awaitility.await;
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventOutbox;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
-import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.config.JpaOutboxTestConfiguration;
+import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.config.JpaOutboxTestAutoConfiguration;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.IntegrationEventOutboxDO;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.IntegrationEventOutboxJpaPersistenceRepository;
 import com.cloud.framework.starter.outbox.jpa.rabbitmq.test.persistence.IntegrationEventOutboxJpaRepository;
@@ -230,7 +230,7 @@ class ReliableEventOutboxJpaRabbitMqIT {
     @SpringBootConfiguration
     @EnableAutoConfiguration
     @EnableRabbit
-    @Import(JpaOutboxTestConfiguration.class)
+    @Import(JpaOutboxTestAutoConfiguration.class)
     static class TestApplication {
         public static void main(String[] args) {
             SpringApplication.run(TestApplication.class, args);

@@ -17,7 +17,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration(proxyBeanMethods = false)
 @EntityScan(basePackageClasses = IntegrationEventOutboxDO.class)
 @EnableJpaRepositories(basePackageClasses = IntegrationEventOutboxJpaRepository.class)
-public class JpaOutboxTestConfiguration {
+public class JpaOutboxTestAutoConfiguration {
     @Bean
     public IntegrationEventOutboxJpaPersistenceMapper integrationEventOutboxJpaPersistenceMapper() {
         return Mappers.getMapper(IntegrationEventOutboxJpaMapStructMapper.class);

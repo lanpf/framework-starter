@@ -15,7 +15,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
-class DefaultDomainEventStoreConfigurationTest {
+class DefaultDomainEventStoreAutoConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(DefaultDomainEventStoreAutoConfiguration.class)

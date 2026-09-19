@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.MockHttpInputMessage;
 
 class ClientRequestBodyAdviceTest {
+    private static final String CHANNEL_CODE_HEADER = "X-Channel-Code";
 
     @Test
     void shouldOverwriteClientRequestContextFromHeaders() {
@@ -25,10 +26,10 @@ class ClientRequestBodyAdviceTest {
         request.setChannelCode("body-channel");
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
         HttpHeaders headers = inputMessage.getHeaders();
-        headers.add(RequestHeader.CLIENT_APP_ID, "gateway-app");
-        headers.add(RequestHeader.CLIENT_PLATFORM, "SERVICE");
-        headers.add(RequestHeader.CLIENT_VERSION, "1.0");
-        headers.add(RequestHeader.CHANNEL_CODE, "PARTNER_A");
+        headers.add(RequestHeader.APP_ID.headerName(), "gateway-app");
+        headers.add(RequestHeader.APP_PLATFORM.headerName(), "SERVICE");
+        headers.add(RequestHeader.APP_VERSION.headerName(), "1.0");
+        headers.add(CHANNEL_CODE_HEADER, "PARTNER_A");
 
         advice.afterBodyRead(request, inputMessage, null, SampleClientChannelRequest.class, null);
 
@@ -55,7 +56,7 @@ class ClientRequestBodyAdviceTest {
     void shouldPopulateDirectClientRequestInstance() {
         ClientRequest request = new ClientRequest();
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
-        inputMessage.getHeaders().add(RequestHeader.CLIENT_APP_ID, "gateway-app");
+        inputMessage.getHeaders().add(RequestHeader.APP_ID.headerName(), "gateway-app");
 
         new ClientRequestBodyAdvice().afterBodyRead(
                 request, inputMessage, null, ClientRequest.class, null);
@@ -67,7 +68,7 @@ class ClientRequestBodyAdviceTest {
     void shouldPopulateDirectChannelClientRequestInstance() {
         ChannelClientRequest request = new ChannelClientRequest();
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
-        inputMessage.getHeaders().add(RequestHeader.CHANNEL_CODE, "PARTNER_A");
+        inputMessage.getHeaders().add(CHANNEL_CODE_HEADER, "PARTNER_A");
 
         new ClientRequestBodyAdvice().afterBodyRead(
                 request, inputMessage, null, ChannelClientRequest.class, null);
@@ -79,8 +80,8 @@ class ClientRequestBodyAdviceTest {
     void shouldPopulateAuthenticatedRequestInstance() {
         AuthenticatedSessionClientRequest request = new AuthenticatedSessionClientRequest();
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
-        inputMessage.getHeaders().add(RequestHeader.USER_ID, "1001");
-        inputMessage.getHeaders().add(RequestHeader.SESSION_ID, "session-abc");
+        inputMessage.getHeaders().add(RequestHeader.USER_ID.headerName(), "1001");
+        inputMessage.getHeaders().add(RequestHeader.SESSION_ID.headerName(), "session-abc");
 
         new ClientRequestBodyAdvice().afterBodyRead(
                 request, inputMessage, null, AuthenticatedSessionClientRequest.class, null);
@@ -93,10 +94,10 @@ class ClientRequestBodyAdviceTest {
     void shouldPopulateComposedChannelAndAuthenticatedSessionContexts() {
         AuthenticatedSessionChannelClientRequest request = new AuthenticatedSessionChannelClientRequest();
         MockHttpInputMessage inputMessage = new MockHttpInputMessage(new byte[0]);
-        inputMessage.getHeaders().add(RequestHeader.CLIENT_APP_ID, "mini-program");
-        inputMessage.getHeaders().add(RequestHeader.CHANNEL_CODE, "PARTNER_A");
-        inputMessage.getHeaders().add(RequestHeader.USER_ID, "1001");
-        inputMessage.getHeaders().add(RequestHeader.SESSION_ID, "session-abc");
+        inputMessage.getHeaders().add(RequestHeader.APP_ID.headerName(), "mini-program");
+        inputMessage.getHeaders().add(CHANNEL_CODE_HEADER, "PARTNER_A");
+        inputMessage.getHeaders().add(RequestHeader.USER_ID.headerName(), "1001");
+        inputMessage.getHeaders().add(RequestHeader.SESSION_ID.headerName(), "session-abc");
 
         new ClientRequestBodyAdvice().afterBodyRead(
                 request, inputMessage, null, AuthenticatedSessionChannelClientRequest.class, null);

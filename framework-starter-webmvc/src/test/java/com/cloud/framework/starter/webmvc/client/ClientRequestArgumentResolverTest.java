@@ -27,6 +27,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.ServletWebRequest;
 
 class ClientRequestArgumentResolverTest {
+    private static final String CHANNEL_CODE_HEADER = "X-Channel-Code";
 
     private final ClientRequestArgumentResolver resolver = new ClientRequestArgumentResolver();
     private final WebDataBinderFactory binderFactory = createBinderFactory();
@@ -35,10 +36,10 @@ class ClientRequestArgumentResolverTest {
     void shouldResolveDirectClientChannelRequestFromHeaders() throws Exception {
         MethodParameter parameter = parameter("channelContext", ChannelClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "admin-console");
-        servletRequest.addHeader(RequestHeader.CLIENT_PLATFORM, "WEB");
-        servletRequest.addHeader(RequestHeader.CLIENT_VERSION, "1.0");
-        servletRequest.addHeader(RequestHeader.CHANNEL_CODE, "PARTNER_A");
+        servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "admin-console");
+        servletRequest.addHeader(RequestHeader.APP_PLATFORM.headerName(), "WEB");
+        servletRequest.addHeader(RequestHeader.APP_VERSION.headerName(), "1.0");
+        servletRequest.addHeader(CHANNEL_CODE_HEADER, "PARTNER_A");
 
         ChannelClientRequest request = (ChannelClientRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
@@ -63,9 +64,9 @@ class ClientRequestArgumentResolverTest {
     void shouldResolveAuthenticatedRequestFromHeaders() throws Exception {
         MethodParameter parameter = parameter("authenticatedContext", AuthenticatedSessionClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "admin-console");
-        servletRequest.addHeader(RequestHeader.USER_ID, "1001");
-        servletRequest.addHeader(RequestHeader.SESSION_ID, "session-abc");
+        servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "admin-console");
+        servletRequest.addHeader(RequestHeader.USER_ID.headerName(), "1001");
+        servletRequest.addHeader(RequestHeader.SESSION_ID.headerName(), "session-abc");
 
         AuthenticatedSessionClientRequest request = (AuthenticatedSessionClientRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
@@ -79,10 +80,10 @@ class ClientRequestArgumentResolverTest {
     void shouldComposeChannelAndAuthenticatedSessionContexts() throws Exception {
         MethodParameter parameter = parameter("authenticatedChannelContext", AuthenticatedSessionChannelClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "mini-program");
-        servletRequest.addHeader(RequestHeader.CHANNEL_CODE, "PARTNER_A");
-        servletRequest.addHeader(RequestHeader.USER_ID, "1001");
-        servletRequest.addHeader(RequestHeader.SESSION_ID, "session-abc");
+        servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "mini-program");
+        servletRequest.addHeader(CHANNEL_CODE_HEADER, "PARTNER_A");
+        servletRequest.addHeader(RequestHeader.USER_ID.headerName(), "1001");
+        servletRequest.addHeader(RequestHeader.SESSION_ID.headerName(), "session-abc");
 
         AuthenticatedSessionChannelClientRequest request = (AuthenticatedSessionChannelClientRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
@@ -112,7 +113,7 @@ class ClientRequestArgumentResolverTest {
     void shouldRejectChannelClientRequestWithoutChannelCode() throws Exception {
         MethodParameter parameter = parameter("channelContext", ChannelClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "admin-console");
+        servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "admin-console");
 
         MethodArgumentNotValidException exception = assertThrows(
                 MethodArgumentNotValidException.class,
@@ -126,7 +127,7 @@ class ClientRequestArgumentResolverTest {
     void shouldAcceptClientRequestWithoutChannelCode() throws Exception {
         MethodParameter parameter = parameter("clientContext", ClientRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.addHeader(RequestHeader.CLIENT_APP_ID, "public-client");
+        servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "public-client");
 
         ClientRequest request = (ClientRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);

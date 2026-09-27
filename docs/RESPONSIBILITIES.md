@@ -69,6 +69,7 @@
 - `LockContext` 声明 `waitTime` 与 `lockNames` 键段；两种 provider 统一经 `ResourceNameResolver` 完成键段规范化与 namespace 注入，namespace 优先 `framework.lock.redis.namespace`，回退 `spring.application.name`、`application`。
 - `lease-time` 统一表示首次或固定 TTL；开启 `auto-renewal` 时 Redisson 使用 watchdog、Spring Integration 使用 renewal scheduler（`renewal.pool`、线程名前缀、remove-on-cancel 独立配置）；关闭时两者均使用固定 TTL 到期释放。
 - Redisson 通过 `RedissonAutoConfigurationCustomizer` 将 `lockWatchdogTimeout` 对齐 `lease-time` 并在装配时校验；两种 provider 锁数据结构不同，运行期不得混用。
+- `LockExecutor` 只管理锁内执行边界：锁保护数据库工作时，由调用方先获取锁、再开启事务，事务提交或回滚完成后才释放锁；方法返回不代表事务完成，存在外层事务或代理时需自行验证真实的事务边界。
 
 ### `framework-starter-domain-eventstore`
 
@@ -76,6 +77,7 @@
 - `domain-event.store.mode` 选择 `default`（默认，`DefaultDomainEventStore` 持久化）或 `noop`（只记录日志）。
 - default 编排在构造信封时通过 `LongIdGenerator` 的 `domain_event` ID 空间分配趋势递增的 Long ID；事件发生时间使用 `Instant` 持久化。
 - 具体数据库 repository 实现由服务或独立技术适配 module 提供。
+- noop 模式面向开发联调与无存储降级场景，逐事件 INFO 是其可观测性行为；生产高频场景应选择 default 实现或自行替换 Store。
 
 ### `framework-starter-message`
 
@@ -101,6 +103,7 @@
 - 发布端口优先使用 `PartitionedOperations`，以 `aggregateType` 作为 destination、`aggregateId` 作为 partition argument；无真实消息端口时使用日志型 no-op publisher。
 - 事件发生时间和 outbox 的创建、发布、失败等状态时间统一使用 `Instant`，通过可注入的 `Clock` 获取，未提供时使用 UTC 系统时钟；异步线程池复用 `TaskExecutionProperties.Pool` 并独立配置线程名前缀。
 - 具体数据库 repository 实现由服务或独立技术适配 module 提供，starter 不绑定 JPA、MyBatis 等持久化技术。
+- 消费侧约定：消费者完成消费的去重记录必须与本地业务写入在同一事务内原子提交；非事务的外部副作用需配套可恢复的幂等协议。starter 侧重放（signal 丢失、PUBLISHING 超时回收）按 at-least-once 投递，安全性依赖上述幂等约定。
 
 ### `framework-starter-persistence-jpa`
 

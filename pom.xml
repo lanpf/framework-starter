@@ -26,6 +26,7 @@
         <module>framework-starter-persistence-mybatisplus</module>
         <module>framework-starter-scheduler-xxljob</module>
         <module>framework-starter-webmvc</module>
+        <module>framework-starter-webflux</module>
         <module>framework-starter-dependencies</module>
     </modules>
 

@@ -1,24 +1,18 @@
 package com.cloud.framework.starter.webmvc.client;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.cloud.framework.core.AuthenticatedSessionChannelClientRequest;
-import com.cloud.framework.core.AuthenticatedSessionClientRequest;
-import com.cloud.framework.core.ChannelClientRequest;
-import com.cloud.framework.core.ClientRequest;
-import com.cloud.framework.core.RequestHeader;
+import com.cloud.framework.core.request.AppRequest;
+import com.cloud.framework.core.request.AuthenticatedSessionAppRequest;
+import com.cloud.framework.core.request.AuthenticatedSessionClientAppRequest;
+import com.cloud.framework.core.request.ClientAppRequest;
+import com.cloud.framework.core.http.RequestHeader;
 import jakarta.validation.Valid;
 import java.lang.reflect.Method;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;
@@ -26,77 +20,83 @@ import org.springframework.web.bind.support.DefaultDataBinderFactory;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.ServletWebRequest;
 
-class ClientRequestArgumentResolverTest {
-    private static final String CHANNEL_CODE_HEADER = "X-Channel-Code";
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    private final ClientRequestArgumentResolver resolver = new ClientRequestArgumentResolver();
+class AppRequestArgumentResolverTest {
+    private static final String CLIENT_ID_HEADER = RequestHeader.CLIENT_ID.headerName();
+
+    private final AppRequestArgumentResolver resolver = new AppRequestArgumentResolver();
     private final WebDataBinderFactory binderFactory = createBinderFactory();
 
     @Test
     void shouldResolveDirectClientChannelRequestFromHeaders() throws Exception {
-        MethodParameter parameter = parameter("channelContext", ChannelClientRequest.class);
+        MethodParameter parameter = parameter("clientContextValue", ClientAppRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "admin-console");
         servletRequest.addHeader(RequestHeader.APP_PLATFORM.headerName(), "WEB");
         servletRequest.addHeader(RequestHeader.APP_VERSION.headerName(), "1.0");
-        servletRequest.addHeader(CHANNEL_CODE_HEADER, "PARTNER_A");
+        servletRequest.addHeader(CLIENT_ID_HEADER, "PARTNER_A");
 
-        ChannelClientRequest request = (ChannelClientRequest) resolver.resolveArgument(
+        ClientAppRequest request = (ClientAppRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
 
-        assertEquals("admin-console", request.getClientAppId());
-        assertEquals("WEB", request.getClientPlatform());
-        assertEquals("1.0", request.getClientVersion());
-        assertEquals("PARTNER_A", request.getChannelCode());
+        assertEquals("admin-console", request.getAppId());
+        assertEquals("WEB", request.getAppPlatform());
+        assertEquals("1.0", request.getAppVersion());
+        assertEquals("PARTNER_A", request.getClientId());
     }
 
     @Test
     void shouldOnlySupportDirectNonBodyContextTypes() throws Exception {
-        assertTrue(resolver.supportsParameter(parameter("clientContext", ClientRequest.class)));
-        assertTrue(resolver.supportsParameter(parameter("channelContext", ChannelClientRequest.class)));
-        assertTrue(resolver.supportsParameter(parameter("authenticatedContext", AuthenticatedSessionClientRequest.class)));
-        assertTrue(resolver.supportsParameter(parameter("authenticatedChannelContext", AuthenticatedSessionChannelClientRequest.class)));
-        assertFalse(resolver.supportsParameter(parameter("requestBody", ClientRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("clientContext", AppRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("clientContextValue", ClientAppRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("authenticatedContext", AuthenticatedSessionAppRequest.class)));
+        assertTrue(resolver.supportsParameter(parameter("authenticatedClientContext", AuthenticatedSessionClientAppRequest.class)));
+        assertFalse(resolver.supportsParameter(parameter("requestBody", AppRequest.class)));
         assertFalse(resolver.supportsParameter(parameter("specialized", SpecializedRequest.class)));
     }
 
     @Test
     void shouldResolveAuthenticatedRequestFromHeaders() throws Exception {
-        MethodParameter parameter = parameter("authenticatedContext", AuthenticatedSessionClientRequest.class);
+        MethodParameter parameter = parameter("authenticatedContext", AuthenticatedSessionAppRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "admin-console");
         servletRequest.addHeader(RequestHeader.USER_ID.headerName(), "1001");
         servletRequest.addHeader(RequestHeader.SESSION_ID.headerName(), "session-abc");
 
-        AuthenticatedSessionClientRequest request = (AuthenticatedSessionClientRequest) resolver.resolveArgument(
+        AuthenticatedSessionAppRequest request = (AuthenticatedSessionAppRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
 
-        assertEquals("admin-console", request.getClientAppId());
+        assertEquals("admin-console", request.getAppId());
         assertEquals("1001", request.getUserId());
         assertEquals("session-abc", request.getSessionId());
     }
 
     @Test
     void shouldComposeChannelAndAuthenticatedSessionContexts() throws Exception {
-        MethodParameter parameter = parameter("authenticatedChannelContext", AuthenticatedSessionChannelClientRequest.class);
+        MethodParameter parameter = parameter("authenticatedClientContext", AuthenticatedSessionClientAppRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "mini-program");
-        servletRequest.addHeader(CHANNEL_CODE_HEADER, "PARTNER_A");
+        servletRequest.addHeader(CLIENT_ID_HEADER, "PARTNER_A");
         servletRequest.addHeader(RequestHeader.USER_ID.headerName(), "1001");
         servletRequest.addHeader(RequestHeader.SESSION_ID.headerName(), "session-abc");
 
-        AuthenticatedSessionChannelClientRequest request = (AuthenticatedSessionChannelClientRequest) resolver.resolveArgument(
+        AuthenticatedSessionClientAppRequest request = (AuthenticatedSessionClientAppRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
 
-        assertEquals("mini-program", request.getClientAppId());
-        assertEquals("PARTNER_A", request.getChannelCode());
+        assertEquals("mini-program", request.getAppId());
+        assertEquals("PARTNER_A", request.getClientId());
         assertEquals("1001", request.getUserId());
         assertEquals("session-abc", request.getSessionId());
     }
 
     @Test
-    void shouldRejectClientRequestWithoutClientAppId() throws Exception {
-        MethodParameter parameter = parameter("clientContext", ClientRequest.class);
+    void shouldRejectClientRequestWithoutAppId() throws Exception {
+        MethodParameter parameter = parameter("clientContext", AppRequest.class);
 
         MethodArgumentNotValidException exception = assertThrows(
                 MethodArgumentNotValidException.class,
@@ -106,12 +106,12 @@ class ClientRequestArgumentResolverTest {
                         new ServletWebRequest(new MockHttpServletRequest()),
                         binderFactory));
 
-        assertTrue(exception.getBindingResult().hasFieldErrors("clientAppId"));
+        assertTrue(exception.getBindingResult().hasFieldErrors("appId"));
     }
 
     @Test
-    void shouldRejectChannelClientRequestWithoutChannelCode() throws Exception {
-        MethodParameter parameter = parameter("channelContext", ChannelClientRequest.class);
+    void shouldRejectClientAppRequestWithoutClientId() throws Exception {
+        MethodParameter parameter = parameter("clientContextValue", ClientAppRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "admin-console");
 
@@ -120,37 +120,37 @@ class ClientRequestArgumentResolverTest {
                 () -> resolver.resolveArgument(
                         parameter, null, new ServletWebRequest(servletRequest), binderFactory));
 
-        assertTrue(exception.getBindingResult().hasFieldErrors("channelCode"));
+        assertTrue(exception.getBindingResult().hasFieldErrors("clientId"));
     }
 
     @Test
-    void shouldAcceptClientRequestWithoutChannelCode() throws Exception {
-        MethodParameter parameter = parameter("clientContext", ClientRequest.class);
+    void shouldAcceptClientRequestWithoutClientId() throws Exception {
+        MethodParameter parameter = parameter("clientContext", AppRequest.class);
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         servletRequest.addHeader(RequestHeader.APP_ID.headerName(), "public-client");
 
-        ClientRequest request = (ClientRequest) resolver.resolveArgument(
+        AppRequest request = (AppRequest) resolver.resolveArgument(
                 parameter, null, new ServletWebRequest(servletRequest), binderFactory);
 
-        assertEquals("public-client", request.getClientAppId());
+        assertEquals("public-client", request.getAppId());
     }
 
     @Test
     void shouldNotValidateWithoutValidationAnnotation() throws Exception {
-        MethodParameter parameter = parameter("unvalidatedClientContext", ClientRequest.class);
+        MethodParameter parameter = parameter("unvalidatedClientContext", AppRequest.class);
 
-        ClientRequest request = (ClientRequest) resolver.resolveArgument(
+        AppRequest request = (AppRequest) resolver.resolveArgument(
                 parameter,
                 null,
                 new ServletWebRequest(new MockHttpServletRequest()),
                 binderFactory);
 
-        assertNull(request.getClientAppId());
+        assertNull(request.getAppId());
     }
 
     @Test
     void shouldSupportValidatedAnnotation() throws Exception {
-        MethodParameter parameter = parameter("validatedClientContext", ClientRequest.class);
+        MethodParameter parameter = parameter("validatedClientContext", AppRequest.class);
 
         MethodArgumentNotValidException exception = assertThrows(
                 MethodArgumentNotValidException.class,
@@ -160,7 +160,7 @@ class ClientRequestArgumentResolverTest {
                         new ServletWebRequest(new MockHttpServletRequest()),
                         binderFactory));
 
-        assertTrue(exception.getBindingResult().hasFieldErrors("clientAppId"));
+        assertTrue(exception.getBindingResult().hasFieldErrors("appId"));
     }
 
     private static MethodParameter parameter(String methodName, Class<?> parameterType) throws Exception {
@@ -179,31 +179,31 @@ class ClientRequestArgumentResolverTest {
 
     @SuppressWarnings("unused")
     private static final class SampleController {
-        void clientContext(@Valid ClientRequest request) {
+        void clientContext(@Valid AppRequest request) {
         }
 
-        void channelContext(@Valid ChannelClientRequest request) {
+        void clientContextValue(@Valid ClientAppRequest request) {
         }
 
-        void authenticatedContext(@Valid AuthenticatedSessionClientRequest request) {
+        void authenticatedContext(@Valid AuthenticatedSessionAppRequest request) {
         }
 
-        void authenticatedChannelContext(@Valid AuthenticatedSessionChannelClientRequest request) {
+        void authenticatedClientContext(@Valid AuthenticatedSessionClientAppRequest request) {
         }
 
-        void unvalidatedClientContext(ClientRequest request) {
+        void unvalidatedClientContext(AppRequest request) {
         }
 
-        void validatedClientContext(@Validated ClientRequest request) {
+        void validatedClientContext(@Validated AppRequest request) {
         }
 
-        void requestBody(@RequestBody ClientRequest request) {
+        void requestBody(@RequestBody AppRequest request) {
         }
 
         void specialized(SpecializedRequest request) {
         }
     }
 
-    private static final class SpecializedRequest extends ClientRequest {
+    private static final class SpecializedRequest extends AppRequest {
     }
 }

@@ -52,10 +52,19 @@
 
 Header 参数允许 null，按空 Map 处理；值仍按原协议透传，允许 null 值，可变值对象保持共享。这里不使用拒绝 null 值的 `Map.copyOf`，也不为复制新增 framework-core 依赖。独立 `LinkedHashMap` 副本的不可修改包装仅保证容器隔离，不承诺值对象的深度不可变。分区键仍由回调最后写入，不改变原 Map。
 
+## framework-core 协作位置
+
+- 请求模型引用 `framework-core.request`，响应信封引用 `framework-core.response`，HTTP Header 引用 `framework-core.http`；Require 仍归属 `framework-core.validation`。
+
+
+## WebFlux 请求绑定
+
+- `AppRequestWebFluxAutoConfiguration` 在 RequestMappingHandlerAdapter 初始化前装饰其现有 HttpMessageReader；保留消息读取器的媒体类型、服务端提示和解码行为，在解码后绑定 Header，再由 Spring 标准 `@RequestBody` 解析器执行校验。不替换默认参数解析链，不增加请求体注解；普通对象、Mono/Flux 元素均使用同一流程。
 ## 集成测试组织
 
 `framework-starter-tests` 按能力或完整场景建立测试子模块。子模块只声明 test scope 依赖，不加入 `framework-starter-bom`，不安装或发布测试制品。场景结构、同名文档、手工观测和 Failsafe 执行遵循[集成测试规约](../.agents/skills/test-integration/references/integration-testing.md)，仅在冒烟阶段执行受影响场景。
 
 ## Web Controller 适配
 
-MVC 的 `ClientRequestBodyAdvice` 处理请求体，`ClientRequestArgumentResolver` 处理无请求体上下文参数，两者复用 Header binder；按 `ChannelContext`、`AuthenticatedSessionContext` 的能力组合完成上下文写入。对外覆盖与校验语义见职责文档。
+- MVC 的 `AppRequestBodyAdvice` 处理请求体，`AppRequestArgumentResolver` 处理无请求体上下文参数，两者复用 `AppRequestHeaderBinder`。
+- `WebMvcExceptionHandler` 与 `WebFluxExceptionHandler` 的 `failure`、`validationFailure`、`httpFailure` 统一返回 `ResponseEntity<Result<Void>>`；对外状态与错误语义见职责文档。

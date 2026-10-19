@@ -13,7 +13,7 @@ public class WebMvcErrorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public GlobalExceptionHandler globalExceptionHandler() {
-        return new GlobalExceptionHandler();
+    public WebMvcExceptionHandler webMvcExceptionHandler() {
+        return new WebMvcExceptionHandler();
     }
 }

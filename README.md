@@ -29,7 +29,8 @@ mvn -pl framework-starter-tests/framework-starter-outbox-rabbitmq-test -am verif
 | `framework-starter-persistence-jpa` | Hibernate 表名前缀/后缀命名策略 |
 | `framework-starter-persistence-mybatisplus` | 分页与动态表名拦截器装配 |
 | `framework-starter-scheduler-xxljob` | XXL-JOB executor 装配与校验 |
-| `framework-starter-webmvc` | CORS、统一异常处理、客户端上下文请求绑定 |
+| `framework-starter-webmvc` | CORS、统一异常处理、App/Client/会话 Header 请求绑定 |
+| `framework-starter-webflux` | reactive Controller 的标准 RequestBody 上下文绑定、校验与异常翻译 |
 | `framework-starter-tests` | 按能力或场景组织的集成测试子模块（lock-redis、message-rabbitmq-delayed、outbox-rabbitmq、outbox-jpa-rabbitmq） |
 
 各 module 的能力、配置契约与限制见 [docs/RESPONSIBILITIES.md](docs/RESPONSIBILITIES.md)，内部装配设计见 [docs/DESIGN.md](docs/DESIGN.md)。

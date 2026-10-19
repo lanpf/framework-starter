@@ -1,24 +1,24 @@
 package com.cloud.framework.starter.webmvc.client;
 
-import com.cloud.framework.core.AuthenticatedSessionChannelClientRequest;
-import com.cloud.framework.core.AuthenticatedSessionClientRequest;
-import com.cloud.framework.core.ChannelClientRequest;
-import com.cloud.framework.core.ClientRequest;
+import com.cloud.framework.core.request.AppRequest;
+import com.cloud.framework.core.request.AuthenticatedSessionAppRequest;
+import com.cloud.framework.core.request.AuthenticatedSessionClientAppRequest;
+import com.cloud.framework.core.request.ClientAppRequest;
 import java.lang.annotation.Annotation;
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.ValidationAnnotationUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /** 从受保护 Header 创建无请求体接口显式声明的客户端上下文参数。 */
-public class ClientRequestArgumentResolver implements HandlerMethodArgumentResolver {
+public class AppRequestArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -26,10 +26,10 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
             return false;
         }
         Class<?> parameterType = parameter.getParameterType();
-        return parameterType == ClientRequest.class
-                || parameterType == ChannelClientRequest.class
-                || parameterType == AuthenticatedSessionClientRequest.class
-                || parameterType == AuthenticatedSessionChannelClientRequest.class;
+        return parameterType == AppRequest.class
+                || parameterType == ClientAppRequest.class
+                || parameterType == AuthenticatedSessionAppRequest.class
+                || parameterType == AuthenticatedSessionClientAppRequest.class;
     }
 
     @Override
@@ -39,8 +39,8 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) throws Exception {
-        ClientRequest request = createRequest(parameter.getParameterType());
-        ClientRequestHeaderBinder.bind(request, webRequest::getHeader);
+        AppRequest request = createRequest(parameter.getParameterType());
+        AppRequestHeaderBinder.bind(request, webRequest::getHeader);
         validateIfApplicable(parameter, webRequest, binderFactory, request);
         return request;
     }
@@ -49,7 +49,7 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
             MethodParameter parameter,
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory,
-            ClientRequest request
+            AppRequest request
     ) throws Exception {
         for (Annotation annotation : parameter.getParameterAnnotations()) {
             Object[] validationHints = ValidationAnnotationUtils.determineValidationHints(annotation);
@@ -64,7 +64,7 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
             MethodParameter parameter,
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory,
-            ClientRequest request,
+            AppRequest request,
             Object[] validationHints
     ) throws Exception {
         WebDataBinder binder = binderFactory.createBinder(
@@ -76,16 +76,16 @@ public class ClientRequestArgumentResolver implements HandlerMethodArgumentResol
         }
     }
 
-    private ClientRequest createRequest(Class<?> parameterType) {
-        if (parameterType == ChannelClientRequest.class) {
-            return new ChannelClientRequest();
+    private AppRequest createRequest(Class<?> parameterType) {
+        if (parameterType == ClientAppRequest.class) {
+            return new ClientAppRequest();
         }
-        if (parameterType == AuthenticatedSessionClientRequest.class) {
-            return new AuthenticatedSessionClientRequest();
+        if (parameterType == AuthenticatedSessionAppRequest.class) {
+            return new AuthenticatedSessionAppRequest();
         }
-        if (parameterType == AuthenticatedSessionChannelClientRequest.class) {
-            return new AuthenticatedSessionChannelClientRequest();
+        if (parameterType == AuthenticatedSessionClientAppRequest.class) {
+            return new AuthenticatedSessionClientAppRequest();
         }
-        return new ClientRequest();
+        return new AppRequest();
     }
 }

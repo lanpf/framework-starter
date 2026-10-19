@@ -73,6 +73,11 @@
                 <artifactId>framework-starter-webmvc</artifactId>
                 <version>${revision.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.cloud</groupId>
+                <artifactId>framework-starter-webflux</artifactId>
+                <version>${revision.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

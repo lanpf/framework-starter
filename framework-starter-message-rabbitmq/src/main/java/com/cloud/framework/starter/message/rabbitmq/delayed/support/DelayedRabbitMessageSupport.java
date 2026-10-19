@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.amqp.core.MessagePostProcessor;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -73,11 +75,17 @@ public final class DelayedRabbitMessageSupport {
                 : Math.addExact(completeTicks, 1);
     }
 
+    /**
+     * Captures additional headers in a shallow snapshot.
+     *
+     * @param headers additional headers; null is equivalent to an empty map; mutable values remain shared
+     * @return a reusable processor independent of subsequent input-map changes
+     */
     public static MessagePostProcessor headersPostProcessor(Map<String, Object> headers) {
+        Map<String, Object> headersSnapshot = headers == null
+                ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(headers));
         return message -> {
-            if (headers != null && !headers.isEmpty()) {
-                message.getMessageProperties().setHeaders(headers);
-            }
+            message.getMessageProperties().setHeaders(headersSnapshot);
             return message;
         };
     }

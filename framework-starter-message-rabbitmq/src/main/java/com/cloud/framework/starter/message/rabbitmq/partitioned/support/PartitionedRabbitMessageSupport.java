@@ -8,6 +8,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -53,11 +55,18 @@ public final class PartitionedRabbitMessageSupport {
         message.getMessageProperties().setHeader(MessageHeaders.PARTITION_KEY, PartitionKeyResolver.resolve(partitionArg));
     }
 
+    /**
+     * Captures a shallow snapshot before applying the partition header.
+     *
+     * @param headers additional headers; null is equivalent to an empty map; mutable values remain shared
+     * @param partitionArg the partition argument that overrides any supplied partition header
+     * @return a reusable processor independent of subsequent input-map changes
+     */
     public static MessagePostProcessor partitionHeaderPostProcessor(Map<String, Object> headers, Object partitionArg) {
+        Map<String, Object> headersSnapshot = headers == null
+                ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(headers));
         return message -> {
-            if (headers != null && !headers.isEmpty()) {
-                message.getMessageProperties().setHeaders(headers);
-            }
+            message.getMessageProperties().setHeaders(headersSnapshot);
             setPartitionHeader(message, partitionArg);
             return message;
         };

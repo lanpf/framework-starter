@@ -32,11 +32,12 @@ mvn -pl framework-starter-tests/framework-starter-outbox-rabbitmq-test -am verif
 | `framework-starter-webmvc` | CORS、统一异常处理、客户端上下文请求绑定 |
 | `framework-starter-tests` | 按能力或场景组织的集成测试子模块（lock-redis、message-rabbitmq-delayed、outbox-rabbitmq、outbox-jpa-rabbitmq） |
 
-各 module 的装配方式、配置项与约束见 [docs/RESPONSIBILITIES.md](docs/RESPONSIBILITIES.md)。
+各 module 的能力、配置契约与限制见 [docs/RESPONSIBILITIES.md](docs/RESPONSIBILITIES.md)，内部装配设计见 [docs/DESIGN.md](docs/DESIGN.md)。
 
 ## 文档路由
 
 - 工程标准与任务路由：`AGENTS.md`（由 engineering-guidance-publisher 托管）。
-- 工程职责、自动配置组织规则、模块能力、集成测试工程：[docs/RESPONSIBILITIES.md](docs/RESPONSIBILITIES.md)。
+- 工程职责、模块能力、对外保证与限制：[docs/RESPONSIBILITIES.md](docs/RESPONSIBILITIES.md)。
+- 内部依赖、自动配置组织和持久化信封设计：[docs/DESIGN.md](docs/DESIGN.md)。
 - 各集成测试场景文档位于对应测试子模块的 `docs/<测试类名>.md`。
 - 纯技术适配工程，无 `docs/DOMAIN.md`。

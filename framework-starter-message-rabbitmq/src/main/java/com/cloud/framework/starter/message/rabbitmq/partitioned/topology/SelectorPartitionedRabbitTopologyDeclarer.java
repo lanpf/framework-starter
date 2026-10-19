@@ -6,7 +6,6 @@ import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.Queue;
 
 public class SelectorPartitionedRabbitTopologyDeclarer extends AbstractPartitionedRabbitTopologyDeclarer<DirectExchange> {

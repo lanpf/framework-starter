@@ -1,12 +1,76 @@
 package com.cloud.framework.starter.message.rabbitmq.delayed.support;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DelayedRabbitMessageSupportTest {
+
+    @Test
+    void shouldSnapshotHeadersBeforeCallbackExecution() {
+        Map<String, Object> headers = new LinkedHashMap<>(Map.of("x-source", "original", "x-removed", "retained"));
+        MessagePostProcessor processor = DelayedRabbitMessageSupport.headersPostProcessor(headers);
+
+        headers.put("x-source", "changed");
+        headers.remove("x-removed");
+        headers.put("x-added", "late");
+
+        Message message = processor.postProcessMessage(new Message(new byte[0]));
+
+        assertThat(message.getMessageProperties().getHeaders()).containsOnly(
+                Map.entry("x-source", "original"), Map.entry("x-removed", "retained"));
+    }
+
+    @Test
+    void shouldTreatNullAndInitiallyEmptyHeadersAsAbsent() {
+        Map<String, Object> headers = new LinkedHashMap<>();
+        MessagePostProcessor processor = DelayedRabbitMessageSupport.headersPostProcessor(headers);
+        headers.put("x-added", "late");
+
+        Message fromEmpty = processor.postProcessMessage(new Message(new byte[0]));
+        Message fromNull = DelayedRabbitMessageSupport.headersPostProcessor(null)
+                .postProcessMessage(new Message(new byte[0]));
+
+        assertThat(fromEmpty.getMessageProperties().getHeaders()).isEmpty();
+        assertThat(fromNull.getMessageProperties().getHeaders()).isEmpty();
+    }
+
+    @Test
+    void shouldKeepSnapshotIndependentOfPreviouslyProcessedMessages() {
+        Map<String, Object> headers = new LinkedHashMap<>(Map.of("x-source", "original"));
+        MessagePostProcessor processor = DelayedRabbitMessageSupport.headersPostProcessor(headers);
+        Message first = processor.postProcessMessage(new Message(new byte[0]));
+        first.getMessageProperties().getHeaders().put("x-source", "changed");
+        first.getMessageProperties().getHeaders().put("x-added", "late");
+
+        Message second = processor.postProcessMessage(new Message(new byte[0]));
+
+        assertThat(second.getMessageProperties().getHeaders()).containsOnly(Map.entry("x-source", "original"));
+        assertThat(headers).containsOnly(Map.entry("x-source", "original"));
+    }
+
+    @Test
+    void shouldPreserveNullableAndMutableHeaderValues() {
+        List<String> value = new ArrayList<>(List.of("original"));
+        Map<String, Object> headers = new LinkedHashMap<>();
+        headers.put("x-null", null);
+        headers.put("x-value", value);
+
+        Message message = DelayedRabbitMessageSupport.headersPostProcessor(headers)
+                .postProcessMessage(new Message(new byte[0]));
+
+        assertThat(message.getMessageProperties().getHeaders()).containsEntry("x-null", null);
+        assertThat(message.getMessageProperties().getHeaders().get("x-value")).isSameAs(value);
+    }
 
     @Test
     void shouldRoundDelayUpToTheNextTick() {

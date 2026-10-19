@@ -11,7 +11,8 @@ public final class AppRequestHandlerAdapterPostProcessor implements BeanPostProc
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         if (bean instanceof RequestMappingHandlerAdapter adapter) {
             List<HttpMessageReader<?>> readers = adapter.getMessageReaders().stream()
-                    .map(AppRequestHandlerAdapterPostProcessor::decorate).toList();
+                    .<HttpMessageReader<?>>map(AppRequestHandlerAdapterPostProcessor::decorate)
+                    .toList();
             adapter.setMessageReaders(readers);
         }
         return bean;

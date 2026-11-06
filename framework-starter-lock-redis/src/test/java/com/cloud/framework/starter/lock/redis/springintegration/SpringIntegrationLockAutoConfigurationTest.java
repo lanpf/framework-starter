@@ -1,5 +1,6 @@
 package com.cloud.framework.starter.lock.redis.springintegration;
 
+import com.cloud.framework.core.naming.Namespaced;
 import com.cloud.framework.starter.lock.redis.RedisLockProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -46,7 +47,7 @@ class SpringIntegrationLockAutoConfigurationTest {
                 redisConnectionFactory(),
                 properties,
                 objectProvider(scheduler),
-                namespaced -> namespaced.getNamespace()
+                Namespaced::getNamespace
         );
 
         assertEquals("order-service", field(registry, "registryKey"));
@@ -62,7 +63,7 @@ class SpringIntegrationLockAutoConfigurationTest {
                 redisConnectionFactory(),
                 properties,
                 objectProvider(null),
-                namespaced -> namespaced.getNamespace()
+                Namespaced::getNamespace
         );
 
         assertEquals(properties.getLeaseTime().toMillis(), field(registry, "expireAfter"));

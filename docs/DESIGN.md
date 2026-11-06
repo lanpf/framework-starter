@@ -33,7 +33,7 @@
 - starter 内提供 `*Envelope` 持久化模型（record）、`*EnvelopePersistenceRepository`、`*EnvelopePersistenceMapper` 契约和默认编排；`OutboxStatus` 等状态枚举保持技术中立。
 - 转换契约声明在 `persistence` 包；MapStruct 实现放在契约包的 `mapstruct` 子包，命名 `*MapStructMapper`，通过 `uses` 引入同子包的 `*PayloadConverter` 完成 payload 序列化与反序列化。
 - `persistence/*EnvelopeAutoConfiguration` 统一声明 converter 与 mapper Bean（`Mappers.getMapper` 实例化生成实现，`@ConditionalOnMissingBean` 允许替换），由能力配置类 `@Import`。
-- payload 序列化/反序列化失败抛 `FrameworkException(FrameworkError.SERIALIZATION_FAILED)`；`ObjectMapper` 复用 Spring Boot 自动配置的实例。
+- payload 序列化/反序列化失败抛 `FrameworkException`，错误枚举由 event-store 或 outbox 能力各自持有；`ObjectMapper` 复用 Spring Boot 自动配置的实例。
 - 技术注解 DO、DO↔Envelope 转换 mapper 与 repository 实现由服务或独立技术适配 module 提供（参考 `framework-starter-outbox-jpa-rabbitmq-test` 的 JPA 实现）。
 
 ## 模块适配细节
@@ -52,9 +52,9 @@
 
 Header 参数允许 null，按空 Map 处理；值仍按原协议透传，允许 null 值，可变值对象保持共享。这里不使用拒绝 null 值的 `Map.copyOf`，也不为复制新增 framework-core 依赖。独立 `LinkedHashMap` 副本的不可修改包装仅保证容器隔离，不承诺值对象的深度不可变。分区键仍由回调最后写入，不改变原 Map。
 
-## framework-core 协作位置
+## framework 协作位置
 
-- 请求模型引用 `framework-core.request`，响应信封引用 `framework-core.response`，HTTP Header 引用 `framework-core.http`；Require 仍归属 `framework-core.validation`。
+- 错误码基础、异常与 Require 引用 `framework-kernel`；请求模型引用 `framework-core.request`，响应信封引用 `framework-core.response`，HTTP Header 与 Web 入站错误引用 `framework-core.http`。
 
 
 ## WebFlux 请求绑定

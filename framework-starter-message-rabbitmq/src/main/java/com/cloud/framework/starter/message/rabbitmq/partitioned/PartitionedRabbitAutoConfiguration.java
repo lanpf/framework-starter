@@ -1,5 +1,7 @@
 package com.cloud.framework.starter.message.rabbitmq.partitioned;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.message.support.ConsistentHashMessageQueueSelector;
 import com.cloud.framework.message.support.HashMessageQueueSelector;
 import com.cloud.framework.message.support.MessageQueueSelector;
@@ -123,7 +125,8 @@ public class PartitionedRabbitAutoConfiguration {
             @Bean
             @ConditionalOnMissingBean
             MessageQueueSelector missingConsistentHashDependency() {
-                throw new IllegalStateException(
+                throw new FrameworkException(
+                        MessageError.CONFIGURATION_INVALID,
                         "Rabbit partitioned consistent-hash selector requires Guava on the application classpath."
                 );
             }

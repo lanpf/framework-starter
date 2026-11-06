@@ -29,5 +29,5 @@
 
 - **ERROR-APPEND-001** **[REQUIRED][TOPIC]** — Append new errors in local-code order within the owning range.
 - **ERROR-STABILITY-002** **[REQUIRED][TOPIC]** — Published error codes are immutable and must not be modified, reused, or assigned to a different meaning.
-- **ERROR-MESSAGE-TEMPLATE-001** **[REQUIRED][TOPIC]** — Bind each error code to one stable message template; exception call sites must not replace it, concatenate ad hoc text, or supply an arbitrary message. Dynamic context may fill only parameters declared by the template and must not change the error meaning.
+- **ERROR-MESSAGE-TEMPLATE-001** **[REQUIRED][TOPIC]** — Bind each service-defined error code to one stable message template; exception call sites must not replace it, concatenate ad hoc text, or supply arbitrary messages. Dynamic context may fill only declared template parameters without changing error meaning. Customizable diagnostics for common framework technical assertion codes are not business message templates; follow the validation rules for their usage boundaries.
 - **ERROR-MESSAGE-LANGUAGE-001** **[REQUIRED][TOPIC]** — Write stable business-error message templates in Chinese; Jakarta Bean Validation and technical-precondition diagnostics follow the validation-message rule.

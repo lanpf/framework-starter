@@ -1,11 +1,12 @@
 package com.cloud.framework.starter.message.rabbitmq.delayed.template;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.delayed.DelayedRabbitTopologyRegistry;
 import com.cloud.framework.starter.message.rabbitmq.delayed.support.DelayedRabbitMessageSupport;
 import com.cloud.framework.starter.message.rabbitmq.reliability.RabbitPublisherConfirm;
 import com.cloud.framework.starter.message.rabbitmq.topology.RabbitRoute;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.AmqpIllegalStateException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -123,20 +124,25 @@ public class BinaryDelayedRabbitTemplate implements DelayedRabbitTemplate {
 
     private RabbitRoute route(String destination, Duration delay) {
         if (delay == null) {
-            throw new AmqpIllegalStateException("Rabbit delayed message delay must not be null.");
+            throw new FrameworkException(MessageError.DELAY_INVALID, "Rabbit delayed message delay must not be null.");
         }
         if (delay.isNegative()) {
-            throw new AmqpIllegalStateException("Rabbit delayed message delay must not be negative.");
+            throw new FrameworkException(MessageError.DELAY_INVALID, "Rabbit delayed message delay must not be negative.");
         }
         long ticks;
         try {
             ticks = DelayedRabbitMessageSupport.ticks(delay, this.topologyRegistry.tickDuration());
         } catch (ArithmeticException ex) {
-            throw new AmqpIllegalStateException("Rabbit delayed message delay exceeds the supported range.", ex);
+            throw new FrameworkException(
+                    MessageError.DELAY_OUT_OF_RANGE,
+                    "Rabbit delayed message delay exceeds the supported range.",
+                    ex
+            );
         }
         long maxTicks = (1L << this.topologyRegistry.levels()) - 1;
         if (ticks > maxTicks) {
-            throw new AmqpIllegalStateException(
+            throw new FrameworkException(
+                    MessageError.DELAY_OUT_OF_RANGE,
                     "Rabbit delayed message delay exceeds the configured maximum of "
                             + this.topologyRegistry.tickDuration().multipliedBy(maxTicks) + "."
             );
@@ -152,7 +158,8 @@ public class BinaryDelayedRabbitTemplate implements DelayedRabbitTemplate {
 
     private void validateDestination(String destination) {
         if (!this.topologyRegistry.destinations().contains(destination)) {
-            throw new AmqpIllegalStateException(
+            throw new FrameworkException(
+                    MessageError.DESTINATION_NOT_CONFIGURED,
                     "Rabbit delayed message destination is not configured: " + destination
             );
         }

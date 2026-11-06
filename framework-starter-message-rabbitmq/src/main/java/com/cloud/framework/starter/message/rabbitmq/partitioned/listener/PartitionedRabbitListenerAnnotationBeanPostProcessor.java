@@ -1,5 +1,7 @@
 package com.cloud.framework.starter.message.rabbitmq.partitioned.listener;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.partitioned.PartitionedRabbitTopologyRegistry;
 import com.cloud.framework.starter.message.rabbitmq.partitioned.support.PartitionedRabbitMessageSupport;
 import com.cloud.framework.starter.message.rabbitmq.topology.RabbitTopologyInitializer;
@@ -157,7 +159,10 @@ public class PartitionedRabbitListenerAnnotationBeanPostProcessor
 
     private void validate(PartitionedRabbitListener annotation, Method method) {
         if (!StringUtils.hasText(annotation.destination())) {
-            throw new IllegalStateException("@PartitionedRabbitListener destination must not be blank on " + method);
+            throw new FrameworkException(
+                    MessageError.CONFIGURATION_INVALID,
+                    "@PartitionedRabbitListener destination must not be blank on " + method
+            );
         }
     }
 
@@ -174,7 +179,10 @@ public class PartitionedRabbitListenerAnnotationBeanPostProcessor
             return this.beanFactory.getBean(containerFactoryBeanName, RabbitListenerContainerFactory.class);
         }
 
-        throw new IllegalStateException("No partitioned RabbitListenerContainerFactory available for " + containerFactoryBeanName);
+        throw new FrameworkException(
+                MessageError.CONFIGURATION_INVALID,
+                "No partitioned RabbitListenerContainerFactory available for " + containerFactoryBeanName
+        );
     }
 
     private MessageHandlerMethodFactory messageHandlerMethodFactory() {

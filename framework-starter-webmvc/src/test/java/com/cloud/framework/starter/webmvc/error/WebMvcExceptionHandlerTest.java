@@ -1,7 +1,10 @@
 package com.cloud.framework.starter.webmvc.error;
 
-import com.cloud.framework.core.error.FrameworkError;
-import com.cloud.framework.core.error.FrameworkException;
+import com.cloud.framework.core.request.RequestError;
+import com.cloud.framework.kernel.error.BaseException;
+import com.cloud.framework.kernel.error.Error;
+import com.cloud.framework.kernel.error.FrameworkError;
+import com.cloud.framework.kernel.error.FrameworkException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -30,9 +33,11 @@ class WebMvcExceptionHandlerTest {
         try (var validator = validator()) {
             MockMvc client = client(validator);
             var business = client.perform(get("/business")).andExpect(status().isOk()).andReturn();
-            assertFailure(business.getResponse().getContentAsString(), FrameworkError.OBJECT_REQUIRED);
+            assertFailure(business.getResponse().getContentAsString(), TestBusinessError.REJECTED);
+            var framework = client.perform(get("/framework")).andExpect(status().isInternalServerError()).andReturn();
+            assertFailure(framework.getResponse().getContentAsString(), FrameworkError.ILLEGAL_STATE);
             var unexpected = client.perform(get("/unexpected")).andExpect(status().isInternalServerError()).andReturn();
-            assertFailure(unexpected.getResponse().getContentAsString(), FrameworkError.FRAMEWORK_ERROR);
+            assertFailure(unexpected.getResponse().getContentAsString(), FrameworkError.INTERNAL_ERROR);
         }
     }
 
@@ -42,13 +47,13 @@ class WebMvcExceptionHandlerTest {
             MockMvc client = client(validator);
             var malformed = client.perform(post("/body").contentType(MediaType.APPLICATION_JSON).content("{"))
                     .andExpect(status().isBadRequest()).andReturn();
-            assertFailure(malformed.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(malformed.getResponse().getContentAsString(), RequestError.REQUEST_MALFORMED);
             var missing = client.perform(post("/body").contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest()).andReturn();
-            assertFailure(missing.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(missing.getResponse().getContentAsString(), RequestError.REQUEST_MALFORMED);
             var conversion = client.perform(get("/parameter").param("count", "not-a-number"))
                     .andExpect(status().isBadRequest()).andReturn();
-            assertFailure(conversion.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(conversion.getResponse().getContentAsString(), RequestError.REQUEST_INVALID);
         }
     }
 
@@ -58,17 +63,17 @@ class WebMvcExceptionHandlerTest {
             MockMvc client = client(validator);
             var method = client.perform(get("/body")).andExpect(status().isMethodNotAllowed())
                     .andExpect(header().string(HttpHeaders.ALLOW, "POST")).andReturn();
-            assertFailure(method.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(method.getResponse().getContentAsString(), RequestError.REQUEST_REJECTED);
             var media = client.perform(post("/body").contentType(MediaType.TEXT_PLAIN).content("value"))
                     .andExpect(status().isUnsupportedMediaType())
                     .andExpect(header().string(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)).andReturn();
-            assertFailure(media.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(media.getResponse().getContentAsString(), RequestError.REQUEST_REJECTED);
             var explicit = client.perform(get("/explicit-status")).andExpect(status().isTooManyRequests())
                     .andExpect(header().string(HttpHeaders.RETRY_AFTER, "7")).andReturn();
-            assertFailure(explicit.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(explicit.getResponse().getContentAsString(), RequestError.REQUEST_REJECTED);
             var unavailable = client.perform(get("/unavailable")).andExpect(status().isServiceUnavailable())
                     .andExpect(header().string(HttpHeaders.RETRY_AFTER, "2")).andReturn();
-            assertFailure(unavailable.getResponse().getContentAsString(), FrameworkError.FRAMEWORK_ERROR);
+            assertFailure(unavailable.getResponse().getContentAsString(), FrameworkError.INTERNAL_ERROR);
         }
     }
 
@@ -78,12 +83,12 @@ class WebMvcExceptionHandlerTest {
             MockMvc client = client(validator);
             var body = client.perform(post("/body").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\"}"))
                     .andExpect(status().isBadRequest()).andReturn();
-            assertFailure(body.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(body.getResponse().getContentAsString(), RequestError.REQUEST_INVALID);
             var parameter = client.perform(get("/parameter").param("count", "0"))
                     .andExpect(status().isBadRequest()).andReturn();
-            assertFailure(parameter.getResponse().getContentAsString(), FrameworkError.OBJECT_INVALID);
+            assertFailure(parameter.getResponse().getContentAsString(), RequestError.REQUEST_INVALID);
             var returned = client.perform(get("/invalid-return")).andExpect(status().isInternalServerError()).andReturn();
-            assertFailure(returned.getResponse().getContentAsString(), FrameworkError.FRAMEWORK_ERROR);
+            assertFailure(returned.getResponse().getContentAsString(), FrameworkError.INTERNAL_ERROR);
         }
     }
 
@@ -99,7 +104,7 @@ class WebMvcExceptionHandlerTest {
         return validator;
     }
 
-    private static void assertFailure(String body, FrameworkError error) throws Exception {
+    private static void assertFailure(String body, Error error) throws Exception {
         var json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
         assertEquals(error.errorCode(), json.get("code").asText());
         assertEquals(error.errorMessage(), json.get("message").asText());
@@ -117,7 +122,9 @@ class WebMvcExceptionHandlerTest {
         @GetMapping("/invalid-return") @NotNull
         public String invalidReturn() { return null; }
         @GetMapping("/business")
-        public String business() { throw new FrameworkException(FrameworkError.OBJECT_REQUIRED); }
+        public String business() { throw new TestBusinessException(); }
+        @GetMapping("/framework")
+        public String framework() { throw FrameworkException.illegalState("internal detail"); }
         @GetMapping("/unexpected")
         public String unexpected() { throw new IllegalStateException("internal detail"); }
         @GetMapping("/explicit-status")
@@ -135,5 +142,19 @@ class WebMvcExceptionHandlerTest {
             exception.getHeaders().set(HttpHeaders.RETRY_AFTER, "2");
             throw exception;
         }
+    }
+
+    enum TestBusinessError implements Error {
+        REJECTED;
+
+        @Override
+        public String getErrorCode() { return "200001"; }
+
+        @Override
+        public String getErrorMessage() { return "业务拒绝"; }
+    }
+
+    static final class TestBusinessException extends BaseException {
+        private TestBusinessException() { super(TestBusinessError.REJECTED); }
     }
 }

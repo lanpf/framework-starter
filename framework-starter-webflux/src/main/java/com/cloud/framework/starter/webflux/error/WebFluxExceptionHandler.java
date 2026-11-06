@@ -1,8 +1,10 @@
 package com.cloud.framework.starter.webflux.error;
 
-import com.cloud.framework.core.error.BaseException;
-import com.cloud.framework.core.error.FrameworkError;
-import com.cloud.framework.core.error.FrameworkException;
+import com.cloud.framework.core.request.RequestError;
+import com.cloud.framework.kernel.error.BaseError;
+import com.cloud.framework.kernel.error.BaseException;
+import com.cloud.framework.kernel.error.FrameworkError;
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.core.response.Result;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ElementKind;
@@ -33,25 +35,29 @@ public class WebFluxExceptionHandler {
                         return false;
                     });
         if (returnValue) {
-            return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.FRAMEWORK_ERROR));
+            return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.INTERNAL_ERROR));
         }
         return ResponseEntity.badRequest().body(Result.failure(
-                new FrameworkException(FrameworkError.OBJECT_INVALID, exception)));
+                new FrameworkException(RequestError.REQUEST_INVALID, exception)));
     }
 
     @ExceptionHandler(ErrorResponseException.class)
     public ResponseEntity<Result<Void>> httpFailure(ErrorResponseException exception) {
-        FrameworkError error = exception.getStatusCode().is4xxClientError()
-                ? FrameworkError.OBJECT_INVALID : FrameworkError.FRAMEWORK_ERROR;
+        BaseError error = exception.getStatusCode().is4xxClientError()
+                ? RequestError.REQUEST_REJECTED : FrameworkError.INTERNAL_ERROR;
         return ResponseEntity.status(exception.getStatusCode()).headers(exception.getHeaders()).body(Result.failure(error));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> failure(Exception exception) {
+        if (exception instanceof FrameworkException framework) {
+            log.error("Framework controller exception.", exception);
+            return ResponseEntity.internalServerError().body(Result.failure(framework.getError()));
+        }
         if (exception instanceof BaseException base) {
             return ResponseEntity.ok(Result.failure(base));
         }
         log.error("Unhandled controller exception.", exception);
-        return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.FRAMEWORK_ERROR));
+        return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.INTERNAL_ERROR));
     }
 }

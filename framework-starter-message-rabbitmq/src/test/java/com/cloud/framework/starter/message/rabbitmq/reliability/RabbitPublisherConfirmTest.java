@@ -7,12 +7,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.RabbitMessageProperties;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.ReturnedMessage;
@@ -58,7 +59,9 @@ class RabbitPublisherConfirmTest {
                 },
                 correlationData -> correlationData.getFuture()
                         .complete(new CorrelationData.Confirm(false, "nack"))
-        )).isInstanceOf(AmqpException.class).hasMessageContaining("nack");
+        )).isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.PUBLISHER_CONFIRM_FAILED.errorCode())
+                .hasMessageContaining("nack");
     }
 
     @Test
@@ -78,7 +81,9 @@ class RabbitPublisherConfirmTest {
                     ));
                     correlationData.getFuture().complete(new CorrelationData.Confirm(true, null));
                 }
-        )).isInstanceOf(AmqpException.class).hasMessageContaining("NO_ROUTE");
+        )).isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.MESSAGE_RETURNED.errorCode())
+                .hasMessageContaining("NO_ROUTE");
     }
 
     @Test
@@ -92,7 +97,9 @@ class RabbitPublisherConfirmTest {
                 },
                 correlationData -> {
                 }
-        )).isInstanceOf(AmqpException.class).hasMessageContaining("timed out");
+        )).isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.PUBLISHER_CONFIRM_TIMEOUT.errorCode())
+                .hasMessageContaining("timed out");
     }
 
     @Test
@@ -113,7 +120,8 @@ class RabbitPublisherConfirmTest {
         RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
 
         assertThatThrownBy(() -> publisherConfirm.sendBatch(rabbitTemplate, operations -> List.of()))
-                .isInstanceOf(AmqpException.class)
+                .isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.PUBLISHER_CONFIRM_REQUIRED.errorCode())
                 .hasMessageContaining("requires publisher-confirm");
         verifyNoInteractions(rabbitTemplate);
     }
@@ -126,7 +134,9 @@ class RabbitPublisherConfirmTest {
         assertThatThrownBy(() -> publisherConfirm.sendBatch(
                 rabbitTemplate,
                 operations -> List.of(confirmed(true, null), confirmed(false, "nack"))
-        )).isInstanceOf(AmqpException.class).hasMessageContaining("nack");
+        )).isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.PUBLISHER_CONFIRM_FAILED.errorCode())
+                .hasMessageContaining("nack");
     }
 
     private RabbitTemplate scopedRabbitTemplate() {

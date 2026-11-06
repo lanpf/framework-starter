@@ -1,7 +1,10 @@
 package com.cloud.framework.starter.webflux.error;
 
-import com.cloud.framework.core.error.FrameworkError;
-import com.cloud.framework.core.error.FrameworkException;
+import com.cloud.framework.core.request.RequestError;
+import com.cloud.framework.kernel.error.BaseException;
+import com.cloud.framework.kernel.error.Error;
+import com.cloud.framework.kernel.error.FrameworkError;
+import com.cloud.framework.kernel.error.FrameworkException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -34,10 +37,13 @@ class WebFluxExceptionHttpTest {
             WebTestClient client = WebTestClient.bindToApplicationContext(context).build();
             byte[] business = client.get().uri("/business").exchange().expectStatus().isOk()
                     .expectBody().returnResult().getResponseBody();
-            assertFailure(business, FrameworkError.OBJECT_REQUIRED);
+            assertFailure(business, TestBusinessError.REJECTED);
+            byte[] framework = client.get().uri("/framework").exchange().expectStatus().is5xxServerError()
+                    .expectBody().returnResult().getResponseBody();
+            assertFailure(framework, FrameworkError.ILLEGAL_STATE);
             byte[] unexpected = client.get().uri("/unexpected").exchange().expectStatus().is5xxServerError()
                     .expectBody().returnResult().getResponseBody();
-            assertFailure(unexpected, FrameworkError.FRAMEWORK_ERROR);
+            assertFailure(unexpected, FrameworkError.INTERNAL_ERROR);
         }
     }
 
@@ -47,13 +53,13 @@ class WebFluxExceptionHttpTest {
             WebTestClient client = WebTestClient.bindToApplicationContext(context).build();
             byte[] malformed = client.post().uri("/body").contentType(MediaType.APPLICATION_JSON).bodyValue("{")
                     .exchange().expectStatus().isBadRequest().expectBody().returnResult().getResponseBody();
-            assertFailure(malformed, FrameworkError.OBJECT_INVALID);
+            assertFailure(malformed, RequestError.REQUEST_REJECTED);
             byte[] missing = client.post().uri("/body").contentType(MediaType.APPLICATION_JSON)
                     .exchange().expectStatus().isBadRequest().expectBody().returnResult().getResponseBody();
-            assertFailure(missing, FrameworkError.OBJECT_INVALID);
+            assertFailure(missing, RequestError.REQUEST_REJECTED);
             byte[] conversion = client.get().uri("/parameter?count=not-a-number").exchange().expectStatus().isBadRequest()
                     .expectBody().returnResult().getResponseBody();
-            assertFailure(conversion, FrameworkError.OBJECT_INVALID);
+            assertFailure(conversion, RequestError.REQUEST_REJECTED);
         }
     }
 
@@ -63,18 +69,18 @@ class WebFluxExceptionHttpTest {
             WebTestClient client = WebTestClient.bindToApplicationContext(context).build();
             byte[] method = client.get().uri("/body").exchange().expectStatus().isEqualTo(405)
                     .expectHeader().valueEquals(HttpHeaders.ALLOW, "POST").expectBody().returnResult().getResponseBody();
-            assertFailure(method, FrameworkError.OBJECT_INVALID);
+            assertFailure(method, RequestError.REQUEST_REJECTED);
             byte[] media = client.post().uri("/body").contentType(MediaType.TEXT_PLAIN).bodyValue("value")
                     .exchange().expectStatus().isEqualTo(415)
                     .expectHeader().valueEquals(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                     .expectBody().returnResult().getResponseBody();
-            assertFailure(media, FrameworkError.OBJECT_INVALID);
+            assertFailure(media, RequestError.REQUEST_REJECTED);
             byte[] explicit = client.get().uri("/explicit-status").exchange().expectStatus().isEqualTo(429)
                     .expectHeader().valueEquals(HttpHeaders.RETRY_AFTER, "7").expectBody().returnResult().getResponseBody();
-            assertFailure(explicit, FrameworkError.OBJECT_INVALID);
+            assertFailure(explicit, RequestError.REQUEST_REJECTED);
             byte[] unavailable = client.get().uri("/unavailable").exchange().expectStatus().isEqualTo(503)
                     .expectHeader().valueEquals(HttpHeaders.RETRY_AFTER, "2").expectBody().returnResult().getResponseBody();
-            assertFailure(unavailable, FrameworkError.FRAMEWORK_ERROR);
+            assertFailure(unavailable, FrameworkError.INTERNAL_ERROR);
         }
     }
 
@@ -84,15 +90,15 @@ class WebFluxExceptionHttpTest {
             WebTestClient client = WebTestClient.bindToApplicationContext(context).build();
             byte[] body = client.post().uri("/body").contentType(MediaType.APPLICATION_JSON).bodyValue("{\"name\":\"\"}")
                     .exchange().expectStatus().isBadRequest().expectBody().returnResult().getResponseBody();
-            assertFailure(body, FrameworkError.OBJECT_INVALID);
+            assertFailure(body, RequestError.REQUEST_INVALID);
             byte[] parameter = client.get().uri("/parameter?count=0").exchange().expectStatus().isBadRequest()
                     .expectBody().returnResult().getResponseBody();
-            assertFailure(parameter, FrameworkError.OBJECT_INVALID);
+            assertFailure(parameter, RequestError.REQUEST_INVALID);
             assertThrows(jakarta.validation.ConstraintViolationException.class,
                     () -> context.getBean(ReturnService.class).value());
             byte[] returned = client.get().uri("/invalid-return").exchange().expectStatus().is5xxServerError()
                     .expectBody().returnResult().getResponseBody();
-            assertFailure(returned, FrameworkError.FRAMEWORK_ERROR);
+            assertFailure(returned, FrameworkError.INTERNAL_ERROR);
         }
     }
 
@@ -103,7 +109,7 @@ class WebFluxExceptionHttpTest {
         return context;
     }
 
-    private static void assertFailure(byte[] body, FrameworkError error) throws Exception {
+    private static void assertFailure(byte[] body, Error error) throws Exception {
         var json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
         assertEquals(error.errorCode(), json.get("code").asText());
         assertEquals(error.errorMessage(), json.get("message").asText());
@@ -149,7 +155,9 @@ class WebFluxExceptionHttpTest {
         @GetMapping("/invalid-return")
         public String invalidReturn() { return returns.value(); }
         @GetMapping("/business")
-        public String business() { throw new FrameworkException(FrameworkError.OBJECT_REQUIRED); }
+        public String business() { throw new TestBusinessException(); }
+        @GetMapping("/framework")
+        public String framework() { throw FrameworkException.illegalState("internal detail"); }
         @GetMapping("/unexpected")
         public String unexpected() { throw new IllegalStateException("internal detail"); }
         @GetMapping("/explicit-status")
@@ -173,5 +181,19 @@ class WebFluxExceptionHttpTest {
     public static class ReturnService {
         @NotNull
         public String value() { return null; }
+    }
+
+    enum TestBusinessError implements Error {
+        REJECTED;
+
+        @Override
+        public String getErrorCode() { return "200001"; }
+
+        @Override
+        public String getErrorMessage() { return "业务拒绝"; }
+    }
+
+    static final class TestBusinessException extends BaseException {
+        private TestBusinessException() { super(TestBusinessError.REJECTED); }
     }
 }

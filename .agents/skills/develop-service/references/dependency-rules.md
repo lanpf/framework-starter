@@ -10,7 +10,8 @@
 ## Scopes and versions
 
 - **DEP-ADMISSION-REVIEW-001** **[REQUIRED][BASELINE]** — Before adding dependencies, assess maintenance, security, license, and dependency cost.
-- **DEP-OVERLAP-001** **[REQUIRED][BASELINE]** — Do not add functionally overlapping dependencies when existing dependencies meet the need.
+- **DEP-COMMONS-LANG3-BASELINE-001** **[DEFAULT][BASELINE]** — Do not use Commons Validate for checks in framework-based projects; use framework-kernel Require. Admit centrally managed commons-lang3 only for a non-validation capability not already satisfied by the JDK or an existing framework utility, and declare it directly with the actual scope.
+- **DEP-OVERLAP-001** **[REQUIRED][BASELINE]** — Do not add functionally overlapping dependencies when existing dependencies meet the need. Assess overlap by the capabilities actually used: an algorithm-specific Guava dependency does not replace the standardized Commons Lang utility baseline.
 - **DEP-SCOPE-USAGE-001** **[REQUIRED][BASELINE]** — Choose scope by actual use: compile for compilation requirements, test for tests, and provided only for capabilities genuinely supplied by the runtime.
 - **DEP-OPTIONAL-001** **[REQUIRED][BASELINE]** — Use optional only for a genuinely optional capability; it is not a replacement for choosing the correct scope.
 - **DEP-SNAPSHOT-001** **[REQUIRED][BASELINE]** — SNAPSHOT dependencies are forbidden in release branches and production builds and may only be temporary in local or unpublished iteration branches.

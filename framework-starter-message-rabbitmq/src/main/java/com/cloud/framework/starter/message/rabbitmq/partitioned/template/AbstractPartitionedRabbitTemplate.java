@@ -1,11 +1,12 @@
 package com.cloud.framework.starter.message.rabbitmq.partitioned.template;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.partitioned.PartitionedRabbitTopologyRegistry;
 import com.cloud.framework.starter.message.rabbitmq.partitioned.support.PartitionedRabbitMessageSupport;
 import com.cloud.framework.starter.message.rabbitmq.reliability.RabbitPublisherConfirm;
 import com.cloud.framework.starter.message.rabbitmq.topology.RabbitRoute;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.AmqpIllegalStateException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -132,7 +133,8 @@ public abstract class AbstractPartitionedRabbitTemplate implements PartitionedRa
 
     private void validateDestination(String destination) {
         if (!this.topologyRegistry.destinations().contains(destination)) {
-            throw new AmqpIllegalStateException(
+            throw new FrameworkException(
+                    MessageError.DESTINATION_NOT_CONFIGURED,
                     "Rabbit partitioned message destination is not configured: " + destination
             );
         }

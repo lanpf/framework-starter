@@ -1,9 +1,11 @@
 package com.cloud.framework.starter.outbox.publisher;
 
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.message.PartitionedOperations;
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventHeaders;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
+import com.cloud.framework.starter.outbox.error.OutboxError;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.ObjectUtils;
@@ -39,7 +41,10 @@ public class PartitionedIntegrationEventPublisher implements IntegrationEventPub
         boolean sameDestination = events.stream()
                 .allMatch(event -> ObjectUtils.nullSafeEquals(destination, event.getAggregateType()));
         if (!sameDestination) {
-            throw new IllegalArgumentException("Integration event batch must use one aggregate type.");
+            throw new FrameworkException(
+                    OutboxError.BATCH_AGGREGATE_MISMATCH,
+                    "Integration event batch must use one aggregate type."
+            );
         }
         return destination;
     }

@@ -1,8 +1,8 @@
 package com.cloud.framework.starter.outbox.persistence.mapstruct;
 
-import com.cloud.framework.core.error.FrameworkError;
-import com.cloud.framework.core.error.FrameworkException;
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.message.integration.IntegrationEvent;
+import com.cloud.framework.starter.outbox.error.OutboxError;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,7 @@ public class IntegrationEventOutboxPayloadConverter {
             return objectMapper.writerFor(event.getClass()).writeValueAsString(event);
         } catch (JsonProcessingException ex) {
             throw new FrameworkException(
-                    FrameworkError.SERIALIZATION_FAILED,
+                    OutboxError.SERIALIZATION_FAILED,
                     "Failed to serialize " + event.getClass().getSimpleName() + ".",
                     ex
             );
@@ -37,7 +37,7 @@ public class IntegrationEventOutboxPayloadConverter {
             return (IntegrationEvent) objectMapper.readValue(envelope.payload(), eventClass);
         } catch (ClassNotFoundException | JsonProcessingException ex) {
             throw new FrameworkException(
-                    FrameworkError.SERIALIZATION_FAILED,
+                    OutboxError.DESERIALIZATION_FAILED,
                     "Failed to deserialize " + simpleName(envelope.eventClassName()) + ".",
                     ex
             );

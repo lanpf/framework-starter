@@ -1,9 +1,11 @@
 package com.cloud.framework.starter.webmvc.error;
 
-import com.cloud.framework.core.error.BaseException;
-import com.cloud.framework.core.error.FrameworkError;
-import com.cloud.framework.core.error.FrameworkException;
+import com.cloud.framework.core.request.RequestError;
 import com.cloud.framework.core.response.Result;
+import com.cloud.framework.kernel.error.BaseError;
+import com.cloud.framework.kernel.error.BaseException;
+import com.cloud.framework.kernel.error.FrameworkError;
+import com.cloud.framework.kernel.error.FrameworkException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ElementKind;
 import jakarta.validation.Path;
@@ -37,24 +39,31 @@ public class WebMvcExceptionHandler {
                         return false;
                     });
         if (returnValue) {
-            return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.FRAMEWORK_ERROR));
+            return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.INTERNAL_ERROR));
         }
         return ResponseEntity.badRequest().body(Result.failure(
-                new FrameworkException(FrameworkError.OBJECT_INVALID, exception)));
+                new FrameworkException(RequestError.REQUEST_INVALID, exception)));
     }
 
     @ExceptionHandler({ErrorResponseException.class, HttpMessageNotReadableException.class, TypeMismatchException.class})
     public ResponseEntity<Result<Void>> httpFailure(Exception exception) {
         if (exception instanceof ErrorResponse response) {
-            FrameworkError error = response.getStatusCode().is4xxClientError()
-                    ? FrameworkError.OBJECT_INVALID : FrameworkError.FRAMEWORK_ERROR;
+            BaseError error = response.getStatusCode().is4xxClientError()
+                    ? RequestError.REQUEST_REJECTED : FrameworkError.INTERNAL_ERROR;
             return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders()).body(Result.failure(error));
         }
-        return ResponseEntity.badRequest().body(Result.failure(FrameworkError.OBJECT_INVALID));
+        if (exception instanceof HttpMessageNotReadableException) {
+            return ResponseEntity.badRequest().body(Result.failure(RequestError.REQUEST_MALFORMED));
+        }
+        return ResponseEntity.badRequest().body(Result.failure(RequestError.REQUEST_INVALID));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> failure(Exception exception) {
+        if (exception instanceof FrameworkException framework) {
+            log.error("Framework controller exception.", exception);
+            return ResponseEntity.internalServerError().body(Result.failure(framework.getError()));
+        }
         if (exception instanceof BaseException base) {
             return ResponseEntity.ok(Result.failure(base));
         }
@@ -63,6 +72,6 @@ public class WebMvcExceptionHandler {
             return httpFailure(exception);
         }
         log.error("Unhandled controller exception.", exception);
-        return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.FRAMEWORK_ERROR));
+        return ResponseEntity.internalServerError().body(Result.failure(FrameworkError.INTERNAL_ERROR));
     }
 }

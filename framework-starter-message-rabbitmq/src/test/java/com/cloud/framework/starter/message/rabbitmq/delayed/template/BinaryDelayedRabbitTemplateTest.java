@@ -1,11 +1,12 @@
 package com.cloud.framework.starter.message.rabbitmq.delayed.template;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.RabbitMessageProperties;
 import com.cloud.framework.starter.message.rabbitmq.delayed.DelayedRabbitProperties;
 import com.cloud.framework.starter.message.rabbitmq.reliability.RabbitPublisherConfirm;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.amqp.AmqpIllegalStateException;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
@@ -64,9 +65,11 @@ class BinaryDelayedRabbitTemplateTest {
         BinaryDelayedRabbitTemplate template = template(mock(RabbitTemplate.class));
 
         assertThatThrownBy(() -> template.convertAndSend("unknown", "order-1", payload -> Duration.ZERO))
-                .isInstanceOf(AmqpIllegalStateException.class);
+                .isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.DESTINATION_NOT_CONFIGURED.errorCode());
         assertThatThrownBy(() -> template.convertAndSend("orders", "order-1", payload -> Duration.ofSeconds(16)))
-                .isInstanceOf(AmqpIllegalStateException.class);
+                .isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MessageError.DELAY_OUT_OF_RANGE.errorCode());
     }
 
     private BinaryDelayedRabbitTemplate template(RabbitTemplate rabbitTemplate) {

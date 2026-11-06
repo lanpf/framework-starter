@@ -8,8 +8,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.message.PartitionedOperations;
 import com.cloud.framework.message.integration.IntegrationEvent;
+import com.cloud.framework.starter.outbox.error.OutboxError;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +44,8 @@ class PartitionedIntegrationEventPublisherTest {
         assertThatThrownBy(() -> publisher.publishAll(List.of(
                 event("person", "person-1"),
                 event("user", "user-1")
-        ))).isInstanceOf(IllegalArgumentException.class)
+        ))).isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", OutboxError.BATCH_AGGREGATE_MISMATCH.errorCode())
                 .hasMessageContaining("one aggregate type");
         verifyNoInteractions(partitionedOperations);
     }

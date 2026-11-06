@@ -96,8 +96,8 @@
 
 - 提供 Spring MVC 的 CORS（`framework.webmvc.cors`）和统一异常处理自动配置。
 - 支持标准请求体和无请求体的框架具体上下文请求参数，统一覆盖受保护 Header。AppRequest 的 appId/appPlatform/appVersion 来自 APP_ID/APP_PLATFORM/APP_VERSION，ClientContext.clientId 只来自 CLIENT_ID（X-Client-Id），AuthenticatedSessionContext 来自 USER_ID/SESSION_ID；不读取 X-Channel-Code。缺失 Header 也覆盖为 null。starter 只完成绑定；参数上的 `@Valid`/`@Validated` 负责校验必填契约。
-- MVC 统一返回无数据的标准错误响应。请求绑定/参数校验失败转换为 OBJECT_INVALID/400，已触发的返回值约束异常转换为 FRAMEWORK_ERROR/500；BaseException 保留既有 200 与稳定错误码；未分类异常记录 ERROR 并返回 FRAMEWORK_ERROR/500，不透出内部异常消息。
-- MVC 的 ErrorResponseException 和实现 ErrorResponse 的标准 Servlet 协议异常保留原 HTTP 状态及响应 Header（如 405 的 Allow、415 的 Accept）；JSON 读取失败和参数类型转换失败返回 OBJECT_INVALID/400。Controller 异常翻译不接管 Servlet Filter/Security 链。
+- MVC 统一返回无数据的标准错误响应。请求校验、请求体格式和其他协议拒绝使用对应 Web 入站错误；返回值约束异常与未分类异常返回 `INTERNAL_ERROR/500`。业务 `BaseException` 保留既有 200 与稳定错误码；`FrameworkException` 返回 500 和稳定枚举消息，不透出调用点诊断文本。
+- MVC 的 ErrorResponseException 和实现 ErrorResponse 的标准 Servlet 协议异常保留原 HTTP 状态及响应 Header（如 405 的 Allow、415 的 Accept）；Controller 异常翻译不接管 Servlet Filter/Security 链。
 
 ### `framework-starter-webflux`
 
@@ -105,7 +105,7 @@
 - 标准请求体及 reactive 请求体元素均先绑定受保护 Header，再执行入口声明的校验；保留原媒体类型、解码行为和标准请求体使用方式。
 - 支持无请求体的四个框架具体上下文请求类型，Header 字段与覆盖语义与 WebMVC 相同；版本声明由入口清洗，starter 不重复 gateway 规则。
 - 只在 reactive Web 应用生效，允许替换默认适配能力，并沿用应用已有的消息读取和校验配置；运行时技术由最终服务选择。
-- WebFlux 的统一错误响应遵循与 MVC 相同的状态映射；仅处理 Controller 边界：绑定与参数校验转换为 OBJECT_INVALID/400，返回值约束失败使用 500；BaseException 保留错误码及既有 200 响应约定，未分类异常记录 ERROR 并返回标准框架错误/500，ErrorResponseException（包括 ResponseStatusException）保留 HTTP 状态及响应 Header。不接管 WebFilter/Security 拒绝或代理响应。
+- WebFlux 的统一错误响应遵循与 MVC 相同的状态映射；仅处理 Controller 边界：外部输入失败使用 Web 入站错误，返回值约束失败使用 `INTERNAL_ERROR/500`；业务 `BaseException` 保留错误码及既有 200 响应约定，`FrameworkException` 和未分类异常返回 500，ErrorResponseException（包括 ResponseStatusException）保留 HTTP 状态及响应 Header。不接管 WebFilter/Security 拒绝或代理响应。
 - 本模块不提供 CORS 自动配置；服务按部署策略配置，不覆盖 Spring Security 或 SCG 的 CORS 行为。
 
 ## 集成测试工程

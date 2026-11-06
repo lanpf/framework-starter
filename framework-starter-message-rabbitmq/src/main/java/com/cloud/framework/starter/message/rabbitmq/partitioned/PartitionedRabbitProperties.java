@@ -1,5 +1,7 @@
 package com.cloud.framework.starter.message.rabbitmq.partitioned;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.topology.RabbitTopologyRegistry;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -63,7 +65,10 @@ public class PartitionedRabbitProperties implements PartitionedRabbitTopologyReg
     public Integer partitions(String destination) {
         Integer partitions = this.destinations.get(destination);
         if (partitions == null) {
-            throw new IllegalArgumentException("partitioned rabbit destination is not configured: " + destination);
+            throw new FrameworkException(
+                    MessageError.DESTINATION_NOT_CONFIGURED,
+                    "Partitioned Rabbit destination is not configured: " + destination
+            );
         }
         return partitions;
     }

@@ -7,8 +7,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
+import com.cloud.framework.starter.outbox.error.OutboxError;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
@@ -69,6 +71,28 @@ class IntegrationEventOutboxPublisherTest {
         assertThatThrownBy(() -> publisher.publish("batch-1"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("broker unavailable");
+
+        verify(repository).restorePendingByBatchId("batch-1", NOW, NOW);
+    }
+
+    @Test
+    void shouldRestorePendingBatchWhenPublishedStateUpdateFails() {
+        IntegrationEventOutboxEnvelopePersistenceRepository repository =
+                mock(IntegrationEventOutboxEnvelopePersistenceRepository.class);
+        IntegrationEventOutboxPayloadConverter converter = mock(IntegrationEventOutboxPayloadConverter.class);
+        IntegrationEventPublisher eventPublisher = mock(IntegrationEventPublisher.class);
+        IntegrationEventOutboxEnvelope outboxEvent = envelope("event-1", 0);
+        IntegrationEvent event = mock(IntegrationEvent.class);
+        when(repository.findByBatchId("batch-1")).thenReturn(List.of(outboxEvent));
+        when(repository.markPublishingByBatchId("batch-1", NOW)).thenReturn(1);
+        when(repository.markPublishedByBatchId("batch-1", NOW)).thenReturn(0);
+        when(converter.deserialize(outboxEvent)).thenReturn(event);
+        IntegrationEventOutboxPublisher publisher =
+                new IntegrationEventOutboxPublisher(repository, converter, eventPublisher, CLOCK);
+
+        assertThatThrownBy(() -> publisher.publish("batch-1"))
+                .isInstanceOf(FrameworkException.class)
+                .hasFieldOrPropertyWithValue("errorCode", OutboxError.STATE_UPDATE_FAILED.errorCode());
 
         verify(repository).restorePendingByBatchId("batch-1", NOW, NOW);
     }

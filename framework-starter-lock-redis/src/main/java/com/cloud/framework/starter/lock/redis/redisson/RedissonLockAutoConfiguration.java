@@ -3,7 +3,9 @@ package com.cloud.framework.starter.lock.redis.redisson;
 import com.cloud.framework.core.naming.NamespaceResolver;
 import com.cloud.framework.core.naming.NamespacedResourceNameResolver;
 import com.cloud.framework.core.naming.ResourceNameResolver;
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.lock.LockProvider;
+import com.cloud.framework.lock.error.LockError;
 import com.cloud.framework.starter.lock.redis.RedisLockProperties;
 import org.redisson.api.RedissonClient;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
@@ -52,7 +54,8 @@ public class RedissonLockAutoConfiguration {
         long watchdogTimeout = redissonClient.getConfig().getLockWatchdogTimeout();
         long leaseTime = properties.getLeaseTime().toMillis();
         if (watchdogTimeout != leaseTime) {
-            throw new IllegalStateException(
+            throw new FrameworkException(
+                    LockError.CONFIGURATION_INVALID,
                     "Redisson lockWatchdogTimeout must match framework.lock.redis.lease-time"
             );
         }

@@ -1,11 +1,13 @@
 package com.cloud.framework.starter.outbox.reliable;
 
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventPublisher;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
 import com.cloud.framework.starter.outbox.persistence.OutboxStatus;
 import com.cloud.framework.starter.outbox.persistence.mapstruct.IntegrationEventOutboxPayloadConverter;
+import com.cloud.framework.starter.outbox.error.OutboxError;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Clock;
 import java.time.Instant;
@@ -43,7 +45,10 @@ public class IntegrationEventOutboxPublisher {
 
             Integer publishedCount = repository.markPublishedByBatchId(batchId, clock.instant());
             if (!ObjectUtils.nullSafeEquals(publishedCount, outboxEvents.size())) {
-                throw new IllegalStateException("Failed to mark integration event batch as published: " + batchId);
+                throw new FrameworkException(
+                        OutboxError.STATE_UPDATE_FAILED,
+                        "Failed to mark integration event batch as published: " + batchId
+                );
             }
         } catch (RuntimeException ex) {
             repository.restorePendingByBatchId(batchId, publishingAt, clock.instant());

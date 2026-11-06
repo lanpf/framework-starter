@@ -1,5 +1,7 @@
 package com.cloud.framework.starter.message.rabbitmq.reliability;
 
+import com.cloud.framework.kernel.error.FrameworkException;
+import com.cloud.framework.message.error.MessageError;
 import com.cloud.framework.starter.message.rabbitmq.RabbitMessageProperties;
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
@@ -11,7 +13,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitOperations;
@@ -44,7 +45,10 @@ public class RabbitPublisherConfirm {
     ) {
         if (this.properties.getProducer().getReliabilityMode()
                 != RabbitMessageProperties.ProducerReliabilityMode.PUBLISHER_CONFIRM) {
-            throw new AmqpException("Rabbit batch sending requires publisher-confirm reliability mode.");
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_REQUIRED,
+                    "Rabbit batch sending requires publisher-confirm reliability mode."
+            );
         }
 
         rabbitTemplate.invoke(operations -> {
@@ -60,11 +64,23 @@ public class RabbitPublisherConfirm {
             verify(correlationData, confirm);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new AmqpException("Interrupted while waiting for Rabbit publisher confirm.", ex);
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_INTERRUPTED,
+                    "Interrupted while waiting for Rabbit publisher confirm.",
+                    ex
+            );
         } catch (TimeoutException ex) {
-            throw new AmqpException("Rabbit publisher confirm timed out after " + timeout + ".", ex);
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_TIMEOUT,
+                    "Rabbit publisher confirm timed out after " + timeout + ".",
+                    ex
+            );
         } catch (ExecutionException ex) {
-            throw new AmqpException("Failed to wait for Rabbit publisher confirm.", ex);
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_FAILED,
+                    "Failed to wait for Rabbit publisher confirm.",
+                    ex
+            );
         }
     }
 
@@ -79,18 +95,31 @@ public class RabbitPublisherConfirm {
             );
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new AmqpException("Interrupted while waiting for Rabbit batch publisher confirms.", ex);
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_INTERRUPTED,
+                    "Interrupted while waiting for Rabbit batch publisher confirms.",
+                    ex
+            );
         } catch (TimeoutException ex) {
-            throw new AmqpException("Rabbit batch publisher confirms timed out after " + timeout + ".", ex);
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_TIMEOUT,
+                    "Rabbit batch publisher confirms timed out after " + timeout + ".",
+                    ex
+            );
         } catch (ExecutionException ex) {
-            throw new AmqpException("Failed to wait for Rabbit batch publisher confirms.", ex);
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_FAILED,
+                    "Failed to wait for Rabbit batch publisher confirms.",
+                    ex
+            );
         }
     }
 
     private void verify(CorrelationData correlationData, CorrelationData.Confirm confirm) {
         ReturnedMessage returnedMessage = correlationData.getReturned();
         if (returnedMessage != null) {
-            throw new AmqpException(
+            throw new FrameworkException(
+                    MessageError.MESSAGE_RETURNED,
                     "Rabbit message was returned. exchange=" + returnedMessage.getExchange()
                             + ", routingKey=" + returnedMessage.getRoutingKey()
                             + ", replyCode=" + returnedMessage.getReplyCode()
@@ -98,7 +127,10 @@ public class RabbitPublisherConfirm {
             );
         }
         if (!confirm.isAck()) {
-            throw new AmqpException("Rabbit publisher confirm failed. reason=" + confirm.getReason());
+            throw new FrameworkException(
+                    MessageError.PUBLISHER_CONFIRM_FAILED,
+                    "Rabbit publisher confirm failed. reason=" + confirm.getReason()
+            );
         }
     }
 }

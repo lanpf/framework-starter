@@ -1,10 +1,12 @@
 package com.cloud.framework.starter.outbox.reliable;
 
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.message.integration.IntegrationEvent;
 import com.cloud.framework.message.integration.IntegrationEventOutbox;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelope;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceMapper;
 import com.cloud.framework.starter.outbox.persistence.IntegrationEventOutboxEnvelopePersistenceRepository;
+import com.cloud.framework.starter.outbox.error.OutboxError;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -46,7 +48,10 @@ public class ReliableIntegrationEventOutbox implements IntegrationEventOutbox {
                         && ObjectUtils.nullSafeEquals(firstEvent.getAggregateId(), event.getAggregateId())
         );
         if (!sameAggregate) {
-            throw new IllegalArgumentException("Integration event outbox batch must belong to one aggregate.");
+            throw new FrameworkException(
+                    OutboxError.BATCH_AGGREGATE_MISMATCH,
+                    "Integration event outbox batch must belong to one aggregate."
+            );
         }
     }
 

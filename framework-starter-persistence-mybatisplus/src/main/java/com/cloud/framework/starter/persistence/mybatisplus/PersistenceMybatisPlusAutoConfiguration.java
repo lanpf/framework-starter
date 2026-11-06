@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.DynamicTableNameInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.cloud.framework.kernel.error.FrameworkException;
 import com.cloud.framework.persistence.PersistenceProperties;
+import com.cloud.framework.persistence.error.PersistenceError;
 import com.cloud.framework.persistence.naming.PersistenceTableNaming;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -39,7 +41,10 @@ public class PersistenceMybatisPlusAutoConfiguration {
     public InnerInterceptor paginationInnerInterceptor(PersistenceProperties properties) {
         DbType dbType = DbType.getDbType(properties.getDatabase());
         if (dbType == DbType.OTHER) {
-            throw new IllegalArgumentException("Unsupported framework.persistence.database: " + properties.getDatabase());
+            throw new FrameworkException(
+                    PersistenceError.UNSUPPORTED_DATABASE,
+                    "Unsupported framework.persistence.database: " + properties.getDatabase()
+            );
         }
         return new PaginationInnerInterceptor(dbType);
     }
